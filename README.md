@@ -1,6 +1,6 @@
 # minesweeper
 
-## constants & variables potentially required:
+## constants & variables potentially required:
 - sounds
 - difficulty parameters - height / with for easy, medium, hard
 - array lookup grids - e.g. 0 - empty cell, -1 - bomb present, 1, 2, 3, 4, 5, 6, 7, 8 (for number of bombs around current location)
