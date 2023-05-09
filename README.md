@@ -7,6 +7,25 @@
 - array lookup grids - flags placed
 - data index of grid
 
+## Board object structure:
+const board = {
+    1: {
+        visible: 1,                                 (or -1 for hidden)
+        number: -1, 0, 1, 2, 3, 4, 5, 6, 7, 8       (-1 = bomb, 0 = empty, other = adj bombs)
+        flag: -1, 1,                                (-1 = no flag, 1 = flag)
+    }
+    2: {
+        visible: -1, 
+        number: 0
+        flag: 1
+    }
+    3: {
+        ...
+        ...
+        ...
+    }...
+}
+
 ## elements to cache
 - dropdown - main page
 - dropdown - game page
@@ -21,8 +40,10 @@
 init():
     // initialise all required variables
     // be called when 'RESTART' or 'PLAY GAME' is clicked
-    // creates grid of the correct size
-    // creates 'bottom layer', containing the bombs (-1), numbers (proximity to bombs), empty cells (0)
+    // creates grid of the correct size for difficulty level
+    // generates board object as per above
+        // function placeBombs --> randomly places the bombs according to how difficult the game is
+        // function placeNumbers --> iterates through the squares in the board and assigns a number (0-8) depending on how many bombs are adjacent to it
     // starts timer function
     // calls render
 
@@ -30,14 +51,22 @@ render():
     //render difficulty level on game page
     //render number of flags remaining
     //render timer (?? - might be better placed separately)
-    //render SQUARES 'top layer' --> same function would render empty cells after user click
+    //render BOARD / SQUARES
+        --> based visibility of square
+        --> displays empty, full, flag, number
+
 
 handleSquareClick():
     // function - checkBottomLayer
         // check if user has clicked a bomb -> game over
         // check if user has clicked an empty cell (0) -> open up board to show all adjacent empty cells and numbers next to bombs
-        // check if user clicked a number (1-8) -> open up board
+        // check if user clicked a number (1-8) -> open up board - function openUp()
         // call RENDER()
+
+openUp():
+    // if square with number 0-8 clicked...
+        // calculate squares to change from HIDDEN to VISIBLE
+    //call render()
 
 handleRightClick():
     // right click square
