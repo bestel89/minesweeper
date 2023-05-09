@@ -2,9 +2,7 @@
 
 ## constants & variables potentially required:
 - sounds
-- difficulty parameters - height / with for easy, medium, hard
-- array lookup grids - e.g. 0 - empty cell, -1 - bomb present, 1, 2, 3, 4, 5, 6, 7, 8 (for number of bombs around current location)
-- array lookup grids - flags placed
+- difficulty parameters - height / width for easy, medium, hard + MINES present
 - data index of grid
 
 ## Board object structure:
