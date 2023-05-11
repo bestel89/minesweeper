@@ -25,6 +25,7 @@ function init() {
     const cellCount = width * height
     grid.style.height = `${level[difficulty].boardHeight}vmin`
     grid.style.width = `${level[difficulty].boardWidth}vmin`
+    grid.style.cursor = 'pointer'
     minesArr = []
     flagsPlaced = 0
     
@@ -225,6 +226,7 @@ function handleLeftClick(evt) {
 
         function openUpIfZero() {
             console.log('desired function running')
+            // 
         }
 
         checkMSGRIDIsNum()
