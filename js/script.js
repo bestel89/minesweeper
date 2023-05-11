@@ -10,9 +10,12 @@ const grid = document.querySelector('.grid')
 
 //! GLOBAL VARIABLES
 let board
-let difficulty = 'medium'
+let difficulty = 'easy'
 let minesArr
 let flagsPlaced
+const width = level[difficulty].cellWidth
+const height = level[difficulty].cellHeight
+const cellCount = width * height
 
 function init() {
     // ! VARIABLES AND ELEMENTS
@@ -20,9 +23,6 @@ function init() {
     
     // ? VARIABLES
     //BOARD CONFIG
-    const width = level[difficulty].cellWidth
-    const height = level[difficulty].cellHeight
-    const cellCount = width * height
     grid.style.height = `${level[difficulty].boardHeight}vmin`
     grid.style.width = `${level[difficulty].boardWidth}vmin`
     grid.style.cursor = 'pointer'
@@ -196,43 +196,161 @@ function init() {
 
 function handleLeftClick(evt) {
     // console.log(evt.target)
-    function checkGameOver() {
-        const cellMSGRIDValue = evt.target.getAttribute('MSGRID')
-        if (cellMSGRIDValue === '-1') {
+    const cellClicked = evt.target
+    //get the MS GRID value of the cell
+    const cellClickedValue = Number(cellClicked.getAttribute('MSGRID'))
+    
+    function checkLeftClickAction(cellClicked, cellClickedValue) {
+        if (cellClickedValue === -1) {
             gameOver()
             console.log('game over')
-        } else {
-            openUp()
-            // console.log("open up")
-        }
+        } else if (cellClickedValue > 0) {
+            cellClicked.style.backgroundColor = 'blue'
+            openSingleCell()
+        } else if (cellClickedValue > 8) {
+            console.log('invalid')
+        } else if (cellClickedValue === 0) {
+            openUp(cellClicked, cellClickedValue)
+        } else {console.log('invalid2')}
     }
 
-    function openUp() {
+    function openUp(cellClicked, cellClickedValue) {
+        // console.log(`run openUp function`)
+        cellClickedIdx = cellClicked.getAttribute('data-index')
+        //convert from string to number
+        cellClickedIdx = Number(cellClickedIdx)
+        //create empty array to store the adjacent indices
+
+        let nextCellToCheck = cellClicked
         
-        function checkMSGRIDIsNum() {
-            const cellToCheck = evt.target
-            const cellToCheckValue = cellToCheck.getAttribute('MSGRID')
-            // console.log(typeof cellToCheckValue)
-            // Number(cellToCheckValue)
-            // console.log(typeof Number(cellToCheckValue))
-            if (Number(cellToCheckValue) > 0) {
-                cellToCheck.style.backgroundColor = 'blue'
-            } else if (Number(cellToCheckValue) > 8) {
-                console.log('invalid')
-            } else if (Number(cellToCheckValue) === 0) {
-                openUpIfZero()
-            } else {console.log('invalid2')}
+        function makeArrCellsAdj(cell) {
+            adjCellArr = [];
+            console.log(`cell being passed into Make Arr Cells Adj:`)
+            console.log(cell)
+            function getHoriz() {
+                // horiz left
+                if (cell % width !== 0 ) {
+                    adjCellArr.push(cell-1);
+                }
+                //horiz right
+                if (cell % width !== width-1 || cell === 0) {
+                    adjCellArr.push(cell+1)
+                }
+            } 
+            
+            function getVert() {
+                //vert above
+                if (cell - width >= 0) {
+                    adjCellArr.push(cell-width)
+                }
+                //vert below
+                if (cell + width <= cellCount-1) {
+                    adjCellArr.push(cell+width)
+                    // console.log(`${cellToCheckIdx+width} pushed`)
+                }
+            }
+            function getDiagRight() {
+                // console.log(`cellToCheckIdx = ${cellToCheckIdx}`)
+                // console.log(`cellToCheckIdx+width + 1 = ${(cellToCheckIdx+width)+1}`)
+                //diag right up
+                if ((cell - width)+1 >0 && ((cell - width)+1)%width !==0 ) {
+                    adjCellArr.push((cell - width)+1)
+                } else {
+                    // console.log('nothing pushed')
+                }
+                //diag right down
+                if ((cell + width)+1 < cellCount && (((cell + width)+1))%width !==0) {
+                    adjCellArr.push((cell + width)+1)
+                    // console.log(`${(cellToCheckIdx + width)+1} pushed`)
+                } else {
+                    // console.log('nothing pushed')
+                }
+            }
+            function getDiagLeft() {
+                // console.log(`cellToCheckIdx = ${cellToCheckIdx}`)
+                // console.log(`cellToCheckIdx+width - 1 modulus width= ${((v+width)-1)%width}`)
+                //diag left up
+                if ((cell - width)-1 >=0 && ((cell - width)-1)%width !== width-1 ) {
+                    adjCellArr.push((cell - width)-1)
+                    // console.log(`${(cellToCheckIdx - width)-1} pushed`)
+                } else {
+                    // console.log('nothing pushed')
+                }
+                //diag left down
+                if ((cell + width)-1 < cellCount-1 && ((cell + width)-1)%width !==width-1) {
+                    adjCellArr.push((cell + width)-1)
+                    // console.log(`${(cellToCheckIdx + width)-1} pushed`)
+                } else {
+                    // console.log('nothing pushed')
+                }
+            }
+            
+            
+            
+            getHoriz()
+            getVert()
+            getDiagRight()
+            getDiagLeft()
+            adjCellArr.sort(sortArr)
+            console.log(`adjCellArr is: ${adjCellArr}`)
+            return adjCellArr
         }
 
-        function openUpIfZero() {
-            console.log('desired function running')
-            // 
+        function openCells(cell, arr) {
+            console.log(`cell passed into openCells is:`)
+            console.log(cell)
+            console.log(`arr passed into openCells is: ${arr}`)
+            cell.setAttribute('OPEN', 1)
+            cell.style.backgroundColor = 'yellow'
+            for (let i = 0; i<arr.length; i++) {
+                // console.log(arr[i])
+                const adjCellFromArr = document.querySelector(('[data-index="' + arr[i] + '"]'))
+                console.log(`adj cell from arr:`)
+                console.log(adjCellFromArr)
+
+                let adjCellFromArrIdx = adjCellFromArr.getAttribute('data-index')
+                console.log(`adj cell from arr idx ${adjCellFromArrIdx}`)
+                adjCellFromArrIdx = Number(adjCellFromArrIdx)
+
+                let adjCellFromArrValue = adjCellFromArr.getAttribute('MSGRID')
+                adjCellFromArrValue = Number(adjCellFromArrValue)
+                console.log(`adj cell from arr value ${adjCellFromArrValue}`)
+
+                function checkIfOpen(cell) {
+                    if (cell.hasAttribute('OPEN')) {
+                        return true
+                    } else {return false}
+                }
+                
+                if (adjCellFromArrValue === 0 && (checkIfOpen(adjCellFromArr) === false)) {
+                    adjCellFromArr.style.backgroundColor = 'yellow'
+                    adjCellFromArr.setAttribute('OPEN', 1)
+                    console.log(`colored yellow & set to open:`)
+                    console.log(adjCellFromArr)
+                    nextCellToCheck = document.querySelector(('[data-index="' + arr[i] + '"]'))
+                    console.log(`next cell to check reassigned to: `)
+                    console.log(nextCellToCheck)
+                    const nextArr = makeArrCellsAdj(Number(nextCellToCheck.getAttribute('data-index')))
+                    console.log(`next arr is: ${nextArr}`)
+                    openCells(nextCellToCheck, nextArr)
+                } else {
+                }
+            }
+
+            // makeArrCellsAdj(adjCellFromArrIdx);
+            // openCells(cell, (makeArrCellsAdj(adjCellFromArrIdx)))
         }
 
-        checkMSGRIDIsNum()
+
+        makeArrCellsAdj(cellClickedIdx)
+        openCells(nextCellToCheck, adjCellArr)
     }
 
-    checkGameOver()
+    function openSingleCell() {
+        console.log(`open single cell`)
+    }
+
+    checkLeftClickAction(cellClicked, cellClickedValue)
 }
 
 function handleRightClick(evt) {
