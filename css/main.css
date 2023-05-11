@@ -5,6 +5,8 @@
     --grass1-bg: #8AD273;
     --grass2-bg: #A4E490;
     --white-txt: white;
+    --dirt-bg: #DCCEBA;
+    --border: #4C604C;
   }
   
   body {
@@ -39,7 +41,7 @@
   }
   
   .grid div {
-    border: 1px solid lightgrey;
+    border: 1px solid var(--border);
     flex-grow: 1;
     height: 10%;
     width: 10%;

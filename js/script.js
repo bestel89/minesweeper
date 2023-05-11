@@ -1,8 +1,13 @@
 //! CONSTANTS
 const level = {
-    'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 5},
-    'medium': {cellWidth: 14, cellHeight: 18, boardWidth: 56, boardHeight: 70, mineNum: 20},
-    'hard': {cellWidth: 20, cellHeight: 24, boardWidth: 64, boardHeight: 80, mineNum: 40},
+    'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 8},
+    'medium': {cellWidth: 14, cellHeight: 18, boardWidth: 56, boardHeight: 70, mineNum: 30},
+    'hard': {cellWidth: 20, cellHeight: 24, boardWidth: 64, boardHeight: 80, mineNum: 50},
+}
+
+const assets = {
+    'mine': 'assets/mine.png',
+    'flag': 'assets/flag.png',
 }
 
 //! CACHED ELEMENTS
@@ -13,6 +18,7 @@ let board
 let difficulty = 'easy'
 let minesArr
 let flagsPlaced
+let undetectedMines
 const width = level[difficulty].cellWidth
 const height = level[difficulty].cellHeight
 const cellCount = width * height
@@ -28,6 +34,7 @@ function init() {
     grid.style.cursor = 'pointer'
     minesArr = []
     flagsPlaced = 0
+    undetectedMines = level[difficulty].mineNum
     
     //! FUNCTIONS
     function createGrid() {
@@ -35,7 +42,7 @@ function init() {
         for (let i=0; i<cellCount; i++) {
             const cell = document.createElement('div')
             cell.setAttribute('data-index', i)
-            cell.innerText = i
+            // cell.innerText = i
             cell.style.height = `${100/height}%`
             cell.style.width = `${100/width}%`
             //implement cell checkerboard
@@ -63,7 +70,7 @@ function init() {
                 } else {
                     cellToPlace.setAttribute('MSGRID', -1)
                     cellToPlace.innerText = '-1'
-                    cellToPlace.style.fontSize = '5vmin';
+                    cellToPlace.style.fontSize = '3vmin';
                     cellToPlace.style.color = 'red';
                     minesPlaced++
                     minesArr.push(mineToPlace)
@@ -162,11 +169,8 @@ function init() {
                     // console.log(cellToPlace)
                     if(cellToPlace.hasAttribute('MSGRID') === false) {
                         cellToPlace.setAttribute('MSGRID', adjMineCount)
-                        cellToPlace.innerText = `${adjMineCount}`
-                        cellToPlace.style.fontSize = '4vmin';
-                        if (adjMineCount >0) {
-                            cellToPlace.style.color = 'orange';
-                        }
+                        // cellToPlace.innerText = `${adjMineCount}`
+                        cellToPlace.style.fontSize = '3vmin';
                     }
                 }
 
@@ -202,16 +206,37 @@ function handleLeftClick(evt) {
     
     function checkLeftClickAction(cellClicked, cellClickedValue) {
         if (cellClickedValue === -1) {
-            gameOver()
+            gameOver(minesArr)
             console.log('game over')
         } else if (cellClickedValue > 0) {
-            cellClicked.style.backgroundColor = 'blue'
-            openSingleCell()
+            // cellClicked.style.backgroundColor = 'blue'
+            openSingleCell(cellClicked, cellClickedValue)
         } else if (cellClickedValue > 8) {
             console.log('invalid')
         } else if (cellClickedValue === 0) {
             openUp(cellClicked, cellClickedValue)
         } else {console.log('invalid2')}
+    }
+
+    function openSingleCell(cellClicked, cellClickedValue) {
+        // console.log(cellClicked)
+        // console.log(cellClickedValue)
+        cellClicked.innerText = `${cellClickedValue}`
+        cellClicked.style.backgroundColor = 'var(--dirt-bg)'
+        cellClicked.setAttribute('OPEN', '1')
+    }
+
+    function gameOver(arr) {
+        console.log(`mines arr: ${minesArr}`)
+        for (let i=0; i<arr.length; i++) {
+            console.log(arr[i])
+            const cellToPlaceMine = document.querySelector(('[data-index="' + arr[i] + '"]'))
+            console.log(cellToPlaceMine)
+            const mineEl = document.createElement('img')
+            mineEl.src = assets.mine
+            mineEl.style.height = '4vmin'
+            cellToPlaceMine.appendChild(mineEl)
+        }
     }
 
     function openUp(cellClicked, cellClickedValue) {
@@ -225,8 +250,9 @@ function handleLeftClick(evt) {
         
         function makeArrCellsAdj(cell) {
             adjCellArr = [];
-            console.log(`cell being passed into Make Arr Cells Adj:`)
-            console.log(cell)
+            // console.log(`cell being passed into Make Arr Cells Adj:`)
+            // console.log(cell)
+
             function getHoriz() {
                 // horiz left
                 if (cell % width !== 0 ) {
@@ -292,49 +318,69 @@ function handleLeftClick(evt) {
             getDiagRight()
             getDiagLeft()
             adjCellArr.sort(sortArr)
-            console.log(`adjCellArr is: ${adjCellArr}`)
+            // console.log(`adjCellArr is: ${adjCellArr}`)
             return adjCellArr
         }
 
         function openCells(cell, arr) {
-            console.log(`cell passed into openCells is:`)
-            console.log(cell)
-            console.log(`arr passed into openCells is: ${arr}`)
+            // console.log(`cell passed into openCells is:`)
+            // console.log(cell)
+            // console.log(`arr passed into openCells is: ${arr}`)
             cell.setAttribute('OPEN', 1)
-            cell.style.backgroundColor = 'yellow'
+            cell.style.backgroundColor = 'var(--dirt-bg)'
             for (let i = 0; i<arr.length; i++) {
                 // console.log(arr[i])
                 const adjCellFromArr = document.querySelector(('[data-index="' + arr[i] + '"]'))
-                console.log(`adj cell from arr:`)
-                console.log(adjCellFromArr)
+                if (cell.getAttribute('MSGRID') === '0') {
+                    // console.log(`if function firing`)
+                    cell.innerText = ''
+                    adjCellFromArr.setAttribute('ZEROADJ', 1)
+                } else {}
+                if (cell.getAttribute('MSGRID') === '1') {
+                    // console.log(`if function firing`)
+                    cell.innerText = ''
+                    adjCellFromArr.setAttribute('ZEROADJ', 1)
+                } else {}
+                // adjCellFromArr.setAttribute('ZEROADJ', 1)
+                // console.log(`adj cell from arr:`)
+                // console.log(adjCellFromArr)
 
                 let adjCellFromArrIdx = adjCellFromArr.getAttribute('data-index')
-                console.log(`adj cell from arr idx ${adjCellFromArrIdx}`)
+                // console.log(`adj cell from arr idx ${adjCellFromArrIdx}`)
                 adjCellFromArrIdx = Number(adjCellFromArrIdx)
 
                 let adjCellFromArrValue = adjCellFromArr.getAttribute('MSGRID')
                 adjCellFromArrValue = Number(adjCellFromArrValue)
-                console.log(`adj cell from arr value ${adjCellFromArrValue}`)
+                // console.log(`adj cell from arr value ${adjCellFromArrValue}`)
 
                 function checkIfOpen(cell) {
+                    // console.log(`check if open has run`)
                     if (cell.hasAttribute('OPEN')) {
                         return true
                     } else {return false}
                 }
+                checkIfOpen(adjCellFromArr)
                 
-                if (adjCellFromArrValue === 0 && (checkIfOpen(adjCellFromArr) === false)) {
-                    adjCellFromArr.style.backgroundColor = 'yellow'
-                    adjCellFromArr.setAttribute('OPEN', 1)
-                    console.log(`colored yellow & set to open:`)
-                    console.log(adjCellFromArr)
-                    nextCellToCheck = document.querySelector(('[data-index="' + arr[i] + '"]'))
-                    console.log(`next cell to check reassigned to: `)
-                    console.log(nextCellToCheck)
-                    const nextArr = makeArrCellsAdj(Number(nextCellToCheck.getAttribute('data-index')))
-                    console.log(`next arr is: ${nextArr}`)
-                    openCells(nextCellToCheck, nextArr)
-                } else {
-                }
+                if (checkIfOpen(adjCellFromArr) === false &&
+                    adjCellFromArrValue === 0 
+                     ) {
+                         adjCellFromArr.style.backgroundColor = 'yellow'
+                         adjCellFromArr.setAttribute('OPEN', 1)
+                        //  console.log(`colored yellow & set to open:`)
+                        //  console.log(adjCellFromArr)
+                         nextCellToCheck = document.querySelector(('[data-index="' + arr[i] + '"]'))
+                        //  console.log(`next cell to check reassigned to: `)
+                        //  console.log(nextCellToCheck)
+                         const nextArr = makeArrCellsAdj(Number(nextCellToCheck.getAttribute('data-index')))
+                        //  console.log(`next arr is: ${nextArr}`)
+                         openCells(nextCellToCheck, nextArr)
+                     } else if (adjCellFromArr.hasAttribute('ZEROADJ') && adjCellFromArrValue !== 0) {
+                        console.log(adjCellFromArrValue)
+                        adjCellFromArr.innerText = `${adjCellFromArrValue}`
+                        adjCellFromArr.style.backgroundColor = 'var(--dirt-bg)'
+                        adjCellFromArr.style.color = 'black'
+                        adjCellFromArr.setAttribute('OPEN', 1)
+                     }
             }
 
             // makeArrCellsAdj(adjCellFromArrIdx);
@@ -346,10 +392,6 @@ function handleLeftClick(evt) {
         openCells(nextCellToCheck, adjCellArr)
     }
 
-    function openSingleCell() {
-        console.log(`open single cell`)
-    }
-
     checkLeftClickAction(cellClicked, cellClickedValue)
 }
 
@@ -357,24 +399,45 @@ function handleRightClick(evt) {
     // console.log(evt.target)
     function toggleFlag() {
         const cellToToggleFlag = evt.target
-        if (!cellToToggleFlag.hasAttribute('FLAG')) {
-            evt.target.setAttribute('FLAG', '1')
-            cellToToggleFlag.style.backgroundColor = 'pink'
+        if (!cellToToggleFlag.hasAttribute('FLAG') && 
+            !cellToToggleFlag.hasAttribute('OPEN'))
+            {
+            const flagEl = document.createElement('img')
+            flagEl.src = assets.flag
+            flagEl.setAttribute('flag-index', cellToToggleFlag.getAttribute('data-index'))
+            flagEl.style.height = '4vmin'
+            cellToToggleFlag.appendChild(flagEl)
+            cellToToggleFlag.setAttribute('FLAG', '1')
             flagsPlaced++
+            undetectedMines--
         } else if (cellToToggleFlag.hasAttribute('FLAG')) {
             cellToToggleFlag.removeAttribute('FLAG')
-            cellToToggleFlag.style.backgroundColor = 'brown'
+            const flagToRemoveEl = document.querySelector(('[flag-index="' + cellToToggleFlag.getAttribute('data-index') + '"]'))
+            flagToRemoveEl.remove()
             flagsPlaced--
+            undetectedMines++
         }
         console.log(`flagsPlaced = ${flagsPlaced}`)
+        console.log(`undetected mines = ${undetectedMines}`)
         // console.log(cellToToggleFlag)
+        checkWinner()
+    }
+
+    function checkWinner() {
+        if (undetectedMines === 0) {
+            winner = true
+            celebrateWinner()
+            console.log(`game won!!!!`)
+        } else {
+            winner = false
+        }
+    }
+
+    function celebrateWinner() {
+
     }
 
     toggleFlag()
-}
-
-function gameOver() {
-
 }
 
 
