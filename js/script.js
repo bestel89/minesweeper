@@ -1,14 +1,27 @@
 //! CONSTANTS
 const level = {
-    'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 8},
-    'medium': {cellWidth: 14, cellHeight: 18, boardWidth: 56, boardHeight: 70, mineNum: 30},
-    'hard': {cellWidth: 20, cellHeight: 24, boardWidth: 64, boardHeight: 80, mineNum: 50},
+    'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 16},
+    'medium': {cellWidth: 14, cellHeight: 18, boardWidth: 56, boardHeight: 70, mineNum: 60},
+    'hard': {cellWidth: 20, cellHeight: 24, boardWidth: 64, boardHeight: 80, mineNum: 100},
 }
 
 const assets = {
     'mine': 'assets/mine.png',
     'flag': 'assets/flag.png',
 }
+
+const numberColors = {
+    1: 'var(--one-num)',
+    2: 'var(--two-num)',
+    3: 'var(--three-num)',
+    4: 'var(--four-num)',
+    5: 'var(--five-num)',
+    6: 'var(--six-num)',
+    7: 'var(--seven-num)',
+    8: 'var(--eight-num)',
+}
+
+
 
 //! CACHED ELEMENTS
 const grid = document.querySelector('.grid')
@@ -66,12 +79,11 @@ function init() {
             while (minesPlaced < level[difficulty].mineNum) {
                 const mineToPlace = randNum()
                 const cellToPlace = document.querySelector('[data-index="' + mineToPlace + '"]')
-                if (cellToPlace.innerText === '-1') {
+                if (cellToPlace.hasAttribute('MSGRID')) {
+                    //do nothing
                 } else {
                     cellToPlace.setAttribute('MSGRID', -1)
-                    cellToPlace.innerText = '-1'
-                    cellToPlace.style.fontSize = '3vmin';
-                    cellToPlace.style.color = 'red';
+                    // cellToPlace.style.backgroundColor = 'pink';
                     minesPlaced++
                     minesArr.push(mineToPlace)
                 }
@@ -207,6 +219,7 @@ function handleLeftClick(evt) {
     function checkLeftClickAction(cellClicked, cellClickedValue) {
         if (cellClickedValue === -1) {
             gameOver(minesArr)
+            removeEvtListeners()
             console.log('game over')
         } else if (cellClickedValue > 0) {
             // cellClicked.style.backgroundColor = 'blue'
@@ -223,18 +236,21 @@ function handleLeftClick(evt) {
         // console.log(cellClickedValue)
         cellClicked.innerText = `${cellClickedValue}`
         cellClicked.style.backgroundColor = 'var(--dirt-bg)'
+        cellClicked.style.border = "1px solid var(--border)"
+        cellClicked.style.color = `${numberColors[cellClickedValue]}`
         cellClicked.setAttribute('OPEN', '1')
     }
 
     function gameOver(arr) {
-        console.log(`mines arr: ${minesArr}`)
+        // console.log(`mines arr: ${minesArr}`)
+        grid.style.cursor = 'auto'
         for (let i=0; i<arr.length; i++) {
             console.log(arr[i])
             const cellToPlaceMine = document.querySelector(('[data-index="' + arr[i] + '"]'))
             console.log(cellToPlaceMine)
             const mineEl = document.createElement('img')
             mineEl.src = assets.mine
-            mineEl.style.height = '4vmin'
+            mineEl.style.height = '3.5vmin'
             cellToPlaceMine.appendChild(mineEl)
         }
     }
@@ -364,7 +380,7 @@ function handleLeftClick(evt) {
                 if (checkIfOpen(adjCellFromArr) === false &&
                     adjCellFromArrValue === 0 
                      ) {
-                         adjCellFromArr.style.backgroundColor = 'yellow'
+                        //  adjCellFromArr.style.backgroundColor = 'yellow'
                          adjCellFromArr.setAttribute('OPEN', 1)
                         //  console.log(`colored yellow & set to open:`)
                         //  console.log(adjCellFromArr)
@@ -375,10 +391,13 @@ function handleLeftClick(evt) {
                         //  console.log(`next arr is: ${nextArr}`)
                          openCells(nextCellToCheck, nextArr)
                      } else if (adjCellFromArr.hasAttribute('ZEROADJ') && adjCellFromArrValue !== 0) {
-                        console.log(adjCellFromArrValue)
+                        console.log(numberColors[adjCellFromArrValue])
                         adjCellFromArr.innerText = `${adjCellFromArrValue}`
+                        adjCellFromArr.style.color = `${numberColors[adjCellFromArrValue]}`
                         adjCellFromArr.style.backgroundColor = 'var(--dirt-bg)'
-                        adjCellFromArr.style.color = 'black'
+                        // cell.style.border = "1px solid var(--border)"
+                        adjCellFromArr.style.border = "1px solid var(--border)"
+                        // adjCellFromArr.style.color = 'black'
                         adjCellFromArr.setAttribute('OPEN', 1)
                      }
             }
@@ -405,7 +424,7 @@ function handleRightClick(evt) {
             const flagEl = document.createElement('img')
             flagEl.src = assets.flag
             flagEl.setAttribute('flag-index', cellToToggleFlag.getAttribute('data-index'))
-            flagEl.style.height = '4vmin'
+            flagEl.style.height = '3.5vmin'
             cellToToggleFlag.appendChild(flagEl)
             cellToToggleFlag.setAttribute('FLAG', '1')
             flagsPlaced++
@@ -443,6 +462,11 @@ function handleRightClick(evt) {
 
 function sortArr(a,b) {
     return a-b
+}
+
+function removeEvtListeners() {
+    grid.removeEventListener('click', handleLeftClick)
+    grid.removeEventListener('contextmenu', handleRightClick)
 }
 
 //! EVENT LISTENERS
