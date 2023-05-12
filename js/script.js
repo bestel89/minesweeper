@@ -1,6 +1,6 @@
 //! CONSTANTS
 const level = {
-    'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 10, difficulty:'easy'},
+    'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 3, difficulty:'easy'},
     'medium': {cellWidth: 14, cellHeight: 18, boardWidth: 56, boardHeight: 70, mineNum: 30, difficulty:'medium'},
     'hard': {cellWidth: 20, cellHeight: 24, boardWidth: 64, boardHeight: 80, mineNum: 100, difficulty:'hard'},
 }
@@ -22,43 +22,40 @@ const numberColors = {
     8: 'var(--eight-num)',
 }
 
-
-
 //! CACHED ELEMENTS
 const grid = document.querySelector('.grid')
 
 //! GLOBAL VARIABLES
-let board
-let difficulty = 'easy'
+let difficulty = 'medium'
 let minesArr
 let flagsArr
 let flagsPlaced
 let flagsToPlace
-let undetectedMines
+let detectedMines
 let timer
 const width = level[difficulty].cellWidth
 const height = level[difficulty].cellHeight
 const cellCount = width * height
 
 function init() {
-    // ! VARIABLES AND ELEMENTS
-    // ? ELEMENTS
-    
-    // ? VARIABLES
-    //BOARD CONFIG
+
+    //! INITIALISE VARIABLES
     grid.style.height = `${level[difficulty].boardHeight}vmin`
     grid.style.width = `${level[difficulty].boardWidth}vmin`
     grid.style.cursor = 'pointer'
     minesArr = []
     flagsArr = []
     flagsPlaced = 0
-    flagsToPlace = level[difficulty].mineNum
+    flagsToPlace = level[difficulty].mineNum - flagsPlaced
     timer = 0
-    undetectedMines = level[difficulty].mineNum
+    undetectedMines = level[difficulty].mineNum - detectedMines
     
-    //! FUNCTIONS
+    //! INIT FUNCTIONS
     function createHeader() {
-        const headerEl = document.querySelector('header')
+
+        // console.log(`create header has run`)
+        const headerEl = document.getElementById('headerEl')
+
         const pageTitleEl = document.createElement('h1')
         pageTitleEl.innerText = 'minesweeper'
         headerEl.appendChild(pageTitleEl)
@@ -66,19 +63,53 @@ function init() {
         const flagCounterEl = document.createElement('div')
         flagCounterEl.setAttribute('id', 'flagDiv')
         headerEl.appendChild(flagCounterEl)
+        const flagImgEl = createFlag()
+        flagCounterEl.appendChild(flagImgEl)
+        const flagCounterNum = document.createElement('h3')
+        flagCounterNum.innerText = flagsToPlace
+        flagCounterNum.setAttribute('id', 'flagCounterNum')
+        flagCounterEl.appendChild(flagCounterNum)
+        
+        const timerDivEl = document.createElement('div')
+        timerDivEl.setAttribute('id', 'timerDiv')
+        headerEl.appendChild(timerDivEl)
+        const timerImgEl = document.createElement('img')
+        timerImgEl.setAttribute('src', 'assets/stopwatch.png')
+        timerImgEl.style.height = '3.5vmin'
+        timerDivEl.appendChild(timerImgEl)
+        const timerCounterNum = document.createElement('h3')
+        timerCounterNum.setAttribute('id', 'timerCounterNum')
+        timerCounterNum.innerText = '0'
+        timerDivEl.appendChild(timerCounterNum)
 
-        // const flagImgEl = 
+        const buttonsDiv = document.createElement('div')
+        buttonsDiv.setAttribute('id', 'buttonsDiv')
+        headerEl.appendChild(buttonsDiv)
+        const easyBtnEl = document.createElement('button')
+        easyBtnEl.classList.add('selected')
+        easyBtnEl.innerText = 'Easy'
+        buttonsDiv.appendChild(easyBtnEl)
+        const mediumBtnEl = document.createElement('button')
+        mediumBtnEl.innerText = 'Medium'
+        buttonsDiv.appendChild(mediumBtnEl)
+        const hardBtnEl = document.createElement('button')
+        hardBtnEl.innerText = 'Hard'
+        buttonsDiv.appendChild(hardBtnEl)
 
-
+        // easyBtnEl.addEventListener('click', startEasyGame)
+        // mediumBtnEl.addEventListener('click', startMediumGame)
+        // hardBtnEl.addEventListener('click', startHardGame)
 
     }
     
     function createGrid() {
+
+        // console.log(`create grid has run`)
+
         let rowCounter = 0
         for (let i=0; i<cellCount; i++) {
             const cell = document.createElement('div')
             cell.setAttribute('data-index', i)
-            // cell.innerText = i
             cell.style.height = `${100/height}%`
             cell.style.width = `${100/width}%`
             //implement cell checkerboard
@@ -96,7 +127,9 @@ function init() {
     }
 
     function createNumbers() {
-        
+
+        // console.log(`create numbers has run`)
+    
         function placeMines() {
             let minesPlaced = 0;
             while (minesPlaced < level[difficulty].mineNum) {
@@ -106,7 +139,6 @@ function init() {
                     //do nothing
                 } else {
                     cellToPlace.setAttribute('MSGRID', -1)
-                    // cellToPlace.style.backgroundColor = 'pink';
                     minesPlaced++
                     minesArr.push(mineToPlace)
                 }
@@ -141,70 +173,43 @@ function init() {
                     //vert below
                     if (i + width <= cellCount-1) {
                         adjCellArr.push(i+width)
-                        // console.log(`${i+width} pushed`)
                     }
                 }
                 
                 function getDiagRight() {
-                    // console.log(`i = ${i}`)
-                    // console.log(`i+width + 1 = ${(i+width)+1}`)
                     //diag right up
                     if ((i - width)+1 >0 && ((i - width)+1)%width !==0 ) {
                         adjCellArr.push((i - width)+1)
-                    } else {
-                        // console.log('nothing pushed')
-                    }
+                    } else {}
                     //diag right down
                     if ((i + width)+1 < cellCount && (((i + width)+1))%width !==0) {
                         adjCellArr.push((i + width)+1)
-                        // console.log(`${(i + width)+1} pushed`)
-                    } else {
-                        // console.log('nothing pushed')
-                    }
+                    } else {}
                 }
 
                 function getDiagLeft() {
-                    // console.log(`i = ${i}`)
-                    // console.log(`i+width - 1 modulus width= ${((i+width)-1)%width}`)
                     //diag left up
                     if ((i - width)-1 >0 && ((i - width)-1)%width !== width-1 ) {
                         adjCellArr.push((i - width)-1)
-                        // console.log(`${(i - width)-1} pushed`)
-                    } else {
-                        // console.log('nothing pushed')
-                    }
+                    } else {}
                     //diag left down
                     if ((i + width)-1 < cellCount-1 && ((i + width)-1)%width !==width-1) {
                         adjCellArr.push((i + width)-1)
-                        // console.log(`${(i + width)-1} pushed`)
-                    } else {
-                        // console.log('nothing pushed')
-                    }
+                    } else {}
                 }
-
-                // console.log(adjCellArr);
                 
                 function checkMineAdj() {
-                    // console.log(`i = ${i}`)
-                    // console.log(`minesArr = ${minesArr}`)
-                    // console.log(`adjCellArr = ${adjCellArr}`)
                     for(let i=0; i<minesArr.length; i++) {
                         if(adjCellArr.includes(minesArr[i])) {
-                            // console.log(`minesArr i = ${minesArr[i]}`)
-                            // console.log(`adjCellArr i = ${adjCellArr[i]}`)
                             adjMineCount++
                         }
-                        // console.log(`adjMineCount = ${adjMineCount}`)
                     }
                 }
 
-                // console.log(adjMineCount)
                 function updateMSGRID() {
                     const cellToPlace = document.querySelector('[data-index="' + i + '"]')
-                    // console.log(cellToPlace)
                     if(cellToPlace.hasAttribute('MSGRID') === false) {
                         cellToPlace.setAttribute('MSGRID', adjMineCount)
-                        // cellToPlace.innerText = `${adjMineCount}`
                         cellToPlace.style.fontSize = '3vmin';
                     }
                 }
@@ -235,7 +240,6 @@ function init() {
 }
 
 function handleLeftClick(evt) {
-    // console.log(evt.target)
     const cellClicked = evt.target
     //get the MS GRID value of the cell
     const cellClickedValue = Number(cellClicked.getAttribute('MSGRID'))
@@ -246,7 +250,6 @@ function handleLeftClick(evt) {
             removeEvtListeners()
             console.log('game over')
         } else if (cellClickedValue > 0) {
-            // cellClicked.style.backgroundColor = 'blue'
             openSingleCell(cellClicked, cellClickedValue)
         } else if (cellClickedValue > 8) {
             console.log('invalid')
@@ -256,8 +259,6 @@ function handleLeftClick(evt) {
     }
 
     function openSingleCell(cellClicked, cellClickedValue) {
-        // console.log(cellClicked)
-        // console.log(cellClickedValue)
         cellClicked.innerText = `${cellClickedValue}`
         cellClicked.style.backgroundColor = 'var(--dirt-bg)'
         cellClicked.style.border = "1px solid var(--border)"
@@ -266,7 +267,6 @@ function handleLeftClick(evt) {
     }
 
     function gameOver(arr) {
-        // console.log(`mines arr: ${minesArr}`)
         grid.style.cursor = 'auto'
         for (let i=0; i<arr.length; i++) {
             console.log(arr[i])
@@ -280,18 +280,14 @@ function handleLeftClick(evt) {
     }
 
     function openUp(cellClicked, cellClickedValue) {
-        // console.log(`run openUp function`)
         cellClickedIdx = cellClicked.getAttribute('data-index')
         //convert from string to number
         cellClickedIdx = Number(cellClickedIdx)
-        //create empty array to store the adjacent indices
 
         let nextCellToCheck = cellClicked
         
         function makeArrCellsAdj(cell) {
             adjCellArr = [];
-            // console.log(`cell being passed into Make Arr Cells Adj:`)
-            // console.log(cell)
 
             function getHoriz() {
                 // horiz left
@@ -312,89 +308,58 @@ function handleLeftClick(evt) {
                 //vert below
                 if (cell + width <= cellCount-1) {
                     adjCellArr.push(cell+width)
-                    // console.log(`${cellToCheckIdx+width} pushed`)
                 }
             }
             function getDiagRight() {
-                // console.log(`cellToCheckIdx = ${cellToCheckIdx}`)
-                // console.log(`cellToCheckIdx+width + 1 = ${(cellToCheckIdx+width)+1}`)
                 //diag right up
                 if ((cell - width)+1 >0 && ((cell - width)+1)%width !==0 ) {
                     adjCellArr.push((cell - width)+1)
-                } else {
-                    // console.log('nothing pushed')
-                }
+                } else {}
                 //diag right down
                 if ((cell + width)+1 < cellCount && (((cell + width)+1))%width !==0) {
                     adjCellArr.push((cell + width)+1)
-                    // console.log(`${(cellToCheckIdx + width)+1} pushed`)
-                } else {
-                    // console.log('nothing pushed')
-                }
+                } else {}
             }
+
             function getDiagLeft() {
-                // console.log(`cellToCheckIdx = ${cellToCheckIdx}`)
-                // console.log(`cellToCheckIdx+width - 1 modulus width= ${((v+width)-1)%width}`)
                 //diag left up
                 if ((cell - width)-1 >=0 && ((cell - width)-1)%width !== width-1 ) {
                     adjCellArr.push((cell - width)-1)
-                    // console.log(`${(cellToCheckIdx - width)-1} pushed`)
-                } else {
-                    // console.log('nothing pushed')
-                }
+                } else {}
                 //diag left down
                 if ((cell + width)-1 < cellCount-1 && ((cell + width)-1)%width !==width-1) {
                     adjCellArr.push((cell + width)-1)
-                    // console.log(`${(cellToCheckIdx + width)-1} pushed`)
-                } else {
-                    // console.log('nothing pushed')
-                }
+                } else {}
             }
-            
-            
             
             getHoriz()
             getVert()
             getDiagRight()
             getDiagLeft()
             adjCellArr.sort(sortArr)
-            // console.log(`adjCellArr is: ${adjCellArr}`)
             return adjCellArr
         }
 
         function openCells(cell, arr) {
-            // console.log(`cell passed into openCells is:`)
-            // console.log(cell)
-            // console.log(`arr passed into openCells is: ${arr}`)
             cell.setAttribute('OPEN', 1)
             cell.style.backgroundColor = 'var(--dirt-bg)'
             for (let i = 0; i<arr.length; i++) {
-                // console.log(arr[i])
                 const adjCellFromArr = document.querySelector(('[data-index="' + arr[i] + '"]'))
                 if (cell.getAttribute('MSGRID') === '0') {
-                    // console.log(`if function firing`)
                     cell.innerText = ''
                     adjCellFromArr.setAttribute('ZEROADJ', 1)
                 } else {}
                 if (cell.getAttribute('MSGRID') === '1') {
-                    // console.log(`if function firing`)
                     cell.innerText = ''
                     adjCellFromArr.setAttribute('ZEROADJ', 1)
                 } else {}
-                // adjCellFromArr.setAttribute('ZEROADJ', 1)
-                // console.log(`adj cell from arr:`)
-                // console.log(adjCellFromArr)
 
                 let adjCellFromArrIdx = adjCellFromArr.getAttribute('data-index')
-                // console.log(`adj cell from arr idx ${adjCellFromArrIdx}`)
                 adjCellFromArrIdx = Number(adjCellFromArrIdx)
-
                 let adjCellFromArrValue = adjCellFromArr.getAttribute('MSGRID')
                 adjCellFromArrValue = Number(adjCellFromArrValue)
-                // console.log(`adj cell from arr value ${adjCellFromArrValue}`)
-
+                
                 function checkIfOpen(cell) {
-                    // console.log(`check if open has run`)
                     if (cell.hasAttribute('OPEN')) {
                         return true
                     } else {return false}
@@ -404,32 +369,19 @@ function handleLeftClick(evt) {
                 if (checkIfOpen(adjCellFromArr) === false &&
                     adjCellFromArrValue === 0 
                      ) {
-                        //  adjCellFromArr.style.backgroundColor = 'yellow'
                          adjCellFromArr.setAttribute('OPEN', 1)
-                        //  console.log(`colored yellow & set to open:`)
-                        //  console.log(adjCellFromArr)
                          nextCellToCheck = document.querySelector(('[data-index="' + arr[i] + '"]'))
-                        //  console.log(`next cell to check reassigned to: `)
-                        //  console.log(nextCellToCheck)
                          const nextArr = makeArrCellsAdj(Number(nextCellToCheck.getAttribute('data-index')))
-                        //  console.log(`next arr is: ${nextArr}`)
                          openCells(nextCellToCheck, nextArr)
                      } else if (adjCellFromArr.hasAttribute('ZEROADJ') && adjCellFromArrValue !== 0) {
-                        console.log(numberColors[adjCellFromArrValue])
                         adjCellFromArr.innerText = `${adjCellFromArrValue}`
                         adjCellFromArr.style.color = `${numberColors[adjCellFromArrValue]}`
                         adjCellFromArr.style.backgroundColor = 'var(--dirt-bg)'
-                        // cell.style.border = "1px solid var(--border)"
                         adjCellFromArr.style.border = "1px solid var(--border)"
-                        // adjCellFromArr.style.color = 'black'
                         adjCellFromArr.setAttribute('OPEN', 1)
                      }
             }
-
-            // makeArrCellsAdj(adjCellFromArrIdx);
-            // openCells(cell, (makeArrCellsAdj(adjCellFromArrIdx)))
         }
-
 
         makeArrCellsAdj(cellClickedIdx)
         openCells(nextCellToCheck, adjCellArr)
@@ -439,25 +391,14 @@ function handleLeftClick(evt) {
 }
 
 function handleRightClick(evt) {
-
-    console.log('NEW CLICK ----------------------------------------')
     
     const itemClicked = evt.target
-    // console.log(itemClicked)
-
     const itemClickedIdx = itemClicked.getAttribute('data-index')
-    // console.log(itemClickedIdx)
-
     const itemFlagIdx = itemClicked.getAttribute('flag-index')
-    // console.log(itemFlagIdx)
-
-    // console.log(itemClicked.hasAttribute('flag-index'))
     
     function toggleFlag(itemClicked, itemClickedIdx, itemFlagIdx, minesArr, flagsArr) {
 
         function checkIfFlagPresent(itemClicked, itemClickedIdx, itemFlagIdx) {
-            // console.log(`check if flag present fired`)
-            // console.log(itemClicked.hasAttribute('flag'))
             if (itemClicked.hasAttribute('flag') === true) {
                 removeFlag(itemClicked, itemClickedIdx, itemFlagIdx)
             } else {
@@ -466,42 +407,39 @@ function handleRightClick(evt) {
         }
 
         function addFlag(itemClicked) {
-            // console.log(`add flag fired`)
             const flagEl = createFlag()
             itemClicked.setAttribute('FLAG', '1')
             flagEl.setAttribute('FLAG', '1')
             flagEl.setAttribute('flag-index', itemClickedIdx)
             itemClicked.appendChild(flagEl)
             flagsArr.push(Number(itemClickedIdx))
-            flagsPlaced++            
+            flagsPlaced++ 
+            console.log(`flags placed: ${flagsPlaced}`)
+            console.log(`flags to place: ${flagsToPlace}`)
+            console.log(flagCounterNum)
+            flagCounterNum.innerText = flagsToPlace - flagsPlaced
         }
 
         function removeFlag(itemClicked, itemClickedIdx, itemFlagIdx) {
             if (itemClicked.hasAttribute('flag') && itemClicked.hasAttribute('data-index')) {
-                // console.log(`a fired`)
                 flagToRemoveEl = document.querySelector('[flag-index="' + itemClickedIdx + '"]')
-                // console.log(`flag to remove EL = ${flagToRemoveEl}`)
                 flagToRemoveEl.remove()
                 const cellFlagToRemove = document.querySelector('[data-index="' + itemClickedIdx + '"]')
                 cellFlagToRemove.removeAttribute('flag')
-                // adjustFlagsArr(flagToRemoveEl.getAttribute('[flag-index="' + itemClickedIdx + '"]'))
             } else if (itemClicked.hasAttribute('flag') && itemClicked.hasAttribute('flag-index')) {
-                // console.log(`b fired`)
                 flagToRemoveEl = document.querySelector('[flag-index="' + itemFlagIdx + '"]')
-                // console.log(`flag to remove EL = ${flagToRemoveEl}`)
                 flagToRemoveEl.remove()
                 itemClicked.removeAttribute('flag')
                 const cellFlagToRemove = document.querySelector('[data-index="' + itemFlagIdx + '"]')
                 cellFlagToRemove.removeAttribute('flag')
-                // adjustFlagsArr(flagToRemoveEl.getAttribute('[data-index="' + itemFlagIdx + '"]'))
             } else {}
             adjustFlagsArr(itemClicked)
             flagsPlaced--
+            flagCounterNum.innerText = flagsToPlace - flagsPlaced
 
         }
 
         function adjustFlagsArr(itemToRemove) {
-            // console.log(itemToRemove)
             if (itemToRemove.hasAttribute('flag-index')) {
                 const idxToRemove = itemToRemove.getAttribute('flag-index')
                 removeFlagFromArr(idxToRemove)
@@ -520,19 +458,16 @@ function handleRightClick(evt) {
         }
 
         function calculateUndetectedMines(minesArr, flagsArr) {
-            console.log(`mines arr is: ${minesArr}`)
-            console.log(`flags arr is : ${flagsArr}`)
-            for (let i=0; i<flagsArr.length; i++) {
-                console.log(flagsArr[i])
-                const idxToCheck = minesArr.indexOf(flagsArr[i])
-                console.log(idxToCheck)
+            detectedMines = 0
+            for (let i=0; i<minesArr.length; i++) {
+                const idxToCheck = flagsArr.indexOf(minesArr[i])
                 if (idxToCheck === -1) {
-                    //do nothing
+                    //do nothing because mine is not in flags arr
                 } else if (idxToCheck > -1) {
-                    undetectedMines--
+                    detectedMines++
                 }
             }
-            console.log(`undetected mines are: ${undetectedMines}`)
+            checkWinner()
         }
 
         checkIfFlagPresent(itemClicked, itemClickedIdx, itemFlagIdx)
@@ -540,7 +475,7 @@ function handleRightClick(evt) {
     }
 
     function checkWinner() {
-        if (undetectedMines === 0) {
+        if (detectedMines === level[difficulty].mineNum) {
             winner = true
             celebrateWinner()
             console.log(`game won!!!!`)
@@ -573,8 +508,54 @@ function removeEvtListeners() {
     grid.removeEventListener('contextmenu', handleRightClick)
 }
 
+// function startEasyGame() {
+
+// }
+
+// function startMediumGame() {
+
+//     removeOldGame()
+//     createNewHeader()
+//     createNewGrid()
+//     difficulty = 'medium'
+//     init()
+// }
+
+// function startHardGame() {
+
+// }
+
+// function removeOldGame() {
+//     console.log(`remove old game`)
+//     console.log(grid)
+//     grid.remove()
+//     headerEl.remove()
+// }
+
+// function createNewHeader() {
+//     console.log(`create new header element`)
+//     const newHeader = document.createElement('div')
+//     newHeader.setAttribute('id', 'headerEl')
+//     const header = document.querySelector('header')
+//     header.appendChild(newHeader)
+//     // console.log(header)
+// }
+
+// function createNewGrid() {
+//     console.log(`create new grid element`)
+//     const newGrid = document.createElement('section')
+//     newGrid.setAttribute('oncontextmenu', 'return false')
+//     newGrid.classList.add('grid')
+//     const mainEl = document.querySelector('main')
+//     mainEl.appendChild(newGrid)
+// }
+
 //! EVENT LISTENERS
 window.addEventListener('DOMContentLoaded', init)
 grid.addEventListener('click', handleLeftClick)
-grid.addEventListener("contextmenu", evt => evt.preventDefault());
+grid.addEventListener("contextmenu", e => e.preventDefault());
 grid.addEventListener('contextmenu', handleRightClick)
+
+
+
+

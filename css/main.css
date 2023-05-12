@@ -1,6 +1,7 @@
 * {
     box-sizing: border-box;
     font-family: 'Play', sans-serif;
+    color: white;
     --main-bg: #004015;
     --grass1-bg: #98CB40;
     --grass2-bg: #A0D147;
@@ -22,12 +23,23 @@
     height: 100vh;
     margin: 0;
     background-color: var(--main-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
   }
 
   header {
+
+  }
+
+  #headerEl {
+    
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-left: 2vmin;
+    margin-right: 2vmin;
     /* background-color: var(---num); */
     /* border-bottom: thick solid var(--dirt-bg); */
   }
@@ -36,7 +48,11 @@
     color: var(--white-txt);
     font-family: 'Roboto Mono', monospace;
     font-size: 4vmin;
-    padding-left: 2vmin;
+
+  }
+
+  h3 {
+    font-size: 3.5vmin;
   }
   
   
@@ -70,5 +86,45 @@
 
   .grid div:hover {
     background-color: var(--grass-hover);
+  }
+
+  #flagDiv {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;    
+    width: 10vmin;
+  }
+
+  #timerDiv {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 10vmin;
+  }
+
+  #buttonsDiv {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+  }
+
+  button {
+    color: white;
+    height: 4vmin;
+    width: 10vmin;
+    font-size: 2vmin;
+    margin-left: 1vmin;
+    margin-right: 1vmin;
+    background-color: var(--main-bg);
+    border: 1px solid white;
+  }
+
+  button:hover {
+    background-color: var(--grass-hover);
+  }
+
+  .selected {
+    border: 1px solid grey;
+    background-color: var(--grass1-bg);
   }
   
