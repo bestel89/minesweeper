@@ -1,14 +1,21 @@
 //! CONSTANTS
 const level = {
-    'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 3, difficulty:'easy'},
-    'medium': {cellWidth: 14, cellHeight: 18, boardWidth: 56, boardHeight: 70, mineNum: 30, difficulty:'medium'},
-    'hard': {cellWidth: 20, cellHeight: 24, boardWidth: 64, boardHeight: 80, mineNum: 100, difficulty:'hard'},
+    'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 10, difficulty:'easy'},
+    'medium': {cellWidth: 14, cellHeight: 18, boardWidth: 56, boardHeight: 70, mineNum: 40, difficulty:'medium'},
+    'hard': {cellWidth: 20, cellHeight: 24, boardWidth: 64, boardHeight: 80, mineNum: 99, difficulty:'hard'},
 }
 
 const assets = {
     'mine': 'assets/mine.png',
     'flag': 'assets/flag.png',
-    'stopwatch': 'assets/stopwatch.png'
+    'stopwatch': 'assets/stopwatch.png',
+    'tick': 'assets/check.png',
+    'welcome': 'assets/welcome.mp3',
+    'win': 'assets/win.mp3',
+    'openUp': 'assets/openUp.mp3',
+    'singleCell': 'assets/singleCell.mp3',
+    'err': 'assets/error.mp3',
+    'flagsound': 'assets/flag2.mp3'
 }
 
 const numberColors = {
@@ -22,24 +29,30 @@ const numberColors = {
     8: 'var(--eight-num)',
 }
 
+const audioPlayer = new Audio();
+
 //! CACHED ELEMENTS
 const grid = document.querySelector('.grid')
 
 //! GLOBAL VARIABLES
-let difficulty = 'medium'
+let difficulty
 let minesArr
 let flagsArr
 let flagsPlaced
 let flagsToPlace
 let detectedMines
 let timer
-const width = level[difficulty].cellWidth
-const height = level[difficulty].cellHeight
-const cellCount = width * height
+let width
+let height
+let cellCount
 
 function init() {
 
     //! INITIALISE VARIABLES
+    getDifficulty()
+    width = level[difficulty].cellWidth
+    height = level[difficulty].cellHeight
+    cellCount = width * height
     grid.style.height = `${level[difficulty].boardHeight}vmin`
     grid.style.width = `${level[difficulty].boardWidth}vmin`
     grid.style.cursor = 'pointer'
@@ -51,8 +64,11 @@ function init() {
     undetectedMines = level[difficulty].mineNum - detectedMines
     
     //! INIT FUNCTIONS
+    function getDifficulty() {
+        difficulty = localStorage.getItem("difficulty");
+    }
+    
     function createHeader() {
-
         // console.log(`create header has run`)
         const headerEl = document.getElementById('headerEl')
 
@@ -86,20 +102,30 @@ function init() {
         buttonsDiv.setAttribute('id', 'buttonsDiv')
         headerEl.appendChild(buttonsDiv)
         const easyBtnEl = document.createElement('button')
-        easyBtnEl.classList.add('selected')
+        easyBtnEl.setAttribute('id', 'easyBtn')
         easyBtnEl.innerText = 'Easy'
         buttonsDiv.appendChild(easyBtnEl)
         const mediumBtnEl = document.createElement('button')
+        mediumBtnEl.setAttribute('id', 'mediumBtn')
         mediumBtnEl.innerText = 'Medium'
         buttonsDiv.appendChild(mediumBtnEl)
         const hardBtnEl = document.createElement('button')
+        hardBtnEl.setAttribute('id', 'hardBtn')
         hardBtnEl.innerText = 'Hard'
         buttonsDiv.appendChild(hardBtnEl)
 
-        // easyBtnEl.addEventListener('click', startEasyGame)
-        // mediumBtnEl.addEventListener('click', startMediumGame)
-        // hardBtnEl.addEventListener('click', startHardGame)
+        function highlightBtn(){
+            const btnToHighlight = document.getElementById(`${difficulty}Btn`)
+            btnToHighlight.classList.add('selected')
+        }
 
+        //add button event listeners
+        easyBtnEl.addEventListener('click', startEasyGame)
+        mediumBtnEl.addEventListener('click', startMediumGame)
+        hardBtnEl.addEventListener('click', startHardGame)
+
+        //run highlight button
+        highlightBtn()
     }
     
     function createGrid() {
@@ -226,14 +252,9 @@ function init() {
         }
         placeMines()
         placeNumbers()
-
-        function randNum() {
-            return Math.floor(Math.random() * cellCount);
-        }
     }
-    
-    
     //! PAGE LOAD
+    playSound('welcome')
     createHeader()
     createGrid()
     createNumbers()
@@ -264,6 +285,7 @@ function handleLeftClick(evt) {
         cellClicked.style.border = "1px solid var(--border)"
         cellClicked.style.color = `${numberColors[cellClickedValue]}`
         cellClicked.setAttribute('OPEN', '1')
+        playSound('singleCell')
     }
 
     function gameOver(arr) {
@@ -273,10 +295,18 @@ function handleLeftClick(evt) {
             const cellToPlaceMine = document.querySelector(('[data-index="' + arr[i] + '"]'))
             console.log(cellToPlaceMine)
             const mineEl = document.createElement('img')
+            const tickEl = document.createElement('img')
             mineEl.src = assets.mine
+            tickEl.src = assets.tick
             mineEl.style.height = '3.5vmin'
-            cellToPlaceMine.appendChild(mineEl)
+            tickEl.style.height = '3.5vmin'
+            if (cellToPlaceMine.hasAttribute('flag')) {
+                cellToPlaceMine.appendChild(tickEl)
+            } else {
+                cellToPlaceMine.appendChild(mineEl)
+            }
         }
+        playSound('err')
     }
 
     function openUp(cellClicked, cellClickedValue) {
@@ -385,6 +415,7 @@ function handleLeftClick(evt) {
 
         makeArrCellsAdj(cellClickedIdx)
         openCells(nextCellToCheck, adjCellArr)
+        playSound('openUp')
     }
 
     checkLeftClickAction(cellClicked, cellClickedValue)
@@ -401,6 +432,8 @@ function handleRightClick(evt) {
         function checkIfFlagPresent(itemClicked, itemClickedIdx, itemFlagIdx) {
             if (itemClicked.hasAttribute('flag') === true) {
                 removeFlag(itemClicked, itemClickedIdx, itemFlagIdx)
+            } else if (itemClicked.hasAttribute('open')) {
+                //do nothing because open
             } else {
                 addFlag(itemClicked)
             }
@@ -418,6 +451,7 @@ function handleRightClick(evt) {
             console.log(`flags to place: ${flagsToPlace}`)
             console.log(flagCounterNum)
             flagCounterNum.innerText = flagsToPlace - flagsPlaced
+            playSound('flagsound')
         }
 
         function removeFlag(itemClicked, itemClickedIdx, itemFlagIdx) {
@@ -436,7 +470,7 @@ function handleRightClick(evt) {
             adjustFlagsArr(itemClicked)
             flagsPlaced--
             flagCounterNum.innerText = flagsToPlace - flagsPlaced
-
+            playSound('flagsound')
         }
 
         function adjustFlagsArr(itemToRemove) {
@@ -477,16 +511,12 @@ function handleRightClick(evt) {
     function checkWinner() {
         if (detectedMines === level[difficulty].mineNum) {
             winner = true
-            celebrateWinner()
-            console.log(`game won!!!!`)
+            runConfetti()
+            playSound('win')
         } else {
             winner = false
         }
     }
-
-    function celebrateWinner() {
-    }
-    
 
     toggleFlag(itemClicked, itemClickedIdx, itemFlagIdx, minesArr, flagsArr)
 }
@@ -494,6 +524,10 @@ function handleRightClick(evt) {
 
 function sortArr(a,b) {
     return a-b
+}
+
+function randNum() {
+    return Math.floor(Math.random() * cellCount);
 }
 
 function createFlag() {
@@ -508,47 +542,34 @@ function removeEvtListeners() {
     grid.removeEventListener('contextmenu', handleRightClick)
 }
 
-// function startEasyGame() {
+function startEasyGame() {
+    localStorage.setItem("difficulty", "easy");
+    location.reload()
+}
 
-// }
+function startMediumGame() {
+    localStorage.setItem("difficulty", "medium");
+    location.reload()
+}
 
-// function startMediumGame() {
+function startHardGame() {
+    localStorage.setItem("difficulty", "hard");
+    location.reload()
+}
 
-//     removeOldGame()
-//     createNewHeader()
-//     createNewGrid()
-//     difficulty = 'medium'
-//     init()
-// }
+function playSound(name) {
+    audioPlayer.src = assets[name];
+    audioPlayer.play();
+}
 
-// function startHardGame() {
-
-// }
-
-// function removeOldGame() {
-//     console.log(`remove old game`)
-//     console.log(grid)
-//     grid.remove()
-//     headerEl.remove()
-// }
-
-// function createNewHeader() {
-//     console.log(`create new header element`)
-//     const newHeader = document.createElement('div')
-//     newHeader.setAttribute('id', 'headerEl')
-//     const header = document.querySelector('header')
-//     header.appendChild(newHeader)
-//     // console.log(header)
-// }
-
-// function createNewGrid() {
-//     console.log(`create new grid element`)
-//     const newGrid = document.createElement('section')
-//     newGrid.setAttribute('oncontextmenu', 'return false')
-//     newGrid.classList.add('grid')
-//     const mainEl = document.querySelector('main')
-//     mainEl.appendChild(newGrid)
-// }
+//TAKEN OFF INTERNET AND IMPLEMENTED - https://confetti.js.org/more.html
+function runConfetti() {
+    confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+    });
+}
 
 //! EVENT LISTENERS
 window.addEventListener('DOMContentLoaded', init)
