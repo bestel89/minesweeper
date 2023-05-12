@@ -17,11 +17,19 @@
     --seven-num: #403F3D;
     --eight-num: #9B9288;
   }
-  
+
   body {
     height: 100vh;
     margin: 0;
     background-color: var(--main-bg);
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* background-color: var(---num); */
+    /* border-bottom: thick solid var(--dirt-bg); */
   }
 
   h1 {

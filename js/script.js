@@ -1,13 +1,14 @@
 //! CONSTANTS
 const level = {
-    'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 16},
-    'medium': {cellWidth: 14, cellHeight: 18, boardWidth: 56, boardHeight: 70, mineNum: 60},
-    'hard': {cellWidth: 20, cellHeight: 24, boardWidth: 64, boardHeight: 80, mineNum: 100},
+    'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 10, difficulty:'easy'},
+    'medium': {cellWidth: 14, cellHeight: 18, boardWidth: 56, boardHeight: 70, mineNum: 30, difficulty:'medium'},
+    'hard': {cellWidth: 20, cellHeight: 24, boardWidth: 64, boardHeight: 80, mineNum: 100, difficulty:'hard'},
 }
 
 const assets = {
     'mine': 'assets/mine.png',
     'flag': 'assets/flag.png',
+    'stopwatch': 'assets/stopwatch.png'
 }
 
 const numberColors = {
@@ -30,8 +31,11 @@ const grid = document.querySelector('.grid')
 let board
 let difficulty = 'easy'
 let minesArr
+let flagsArr
 let flagsPlaced
+let flagsToPlace
 let undetectedMines
+let timer
 const width = level[difficulty].cellWidth
 const height = level[difficulty].cellHeight
 const cellCount = width * height
@@ -46,10 +50,29 @@ function init() {
     grid.style.width = `${level[difficulty].boardWidth}vmin`
     grid.style.cursor = 'pointer'
     minesArr = []
+    flagsArr = []
     flagsPlaced = 0
+    flagsToPlace = level[difficulty].mineNum
+    timer = 0
     undetectedMines = level[difficulty].mineNum
     
     //! FUNCTIONS
+    function createHeader() {
+        const headerEl = document.querySelector('header')
+        const pageTitleEl = document.createElement('h1')
+        pageTitleEl.innerText = 'minesweeper'
+        headerEl.appendChild(pageTitleEl)
+
+        const flagCounterEl = document.createElement('div')
+        flagCounterEl.setAttribute('id', 'flagDiv')
+        headerEl.appendChild(flagCounterEl)
+
+        // const flagImgEl = 
+
+
+
+    }
+    
     function createGrid() {
         let rowCounter = 0
         for (let i=0; i<cellCount; i++) {
@@ -206,6 +229,7 @@ function init() {
     
     
     //! PAGE LOAD
+    createHeader()
     createGrid()
     createNumbers()
 }
@@ -415,31 +439,104 @@ function handleLeftClick(evt) {
 }
 
 function handleRightClick(evt) {
-    // console.log(evt.target)
-    function toggleFlag() {
-        const cellToToggleFlag = evt.target
-        if (!cellToToggleFlag.hasAttribute('FLAG') && 
-            !cellToToggleFlag.hasAttribute('OPEN'))
-            {
-            const flagEl = document.createElement('img')
-            flagEl.src = assets.flag
-            flagEl.setAttribute('flag-index', cellToToggleFlag.getAttribute('data-index'))
-            flagEl.style.height = '3.5vmin'
-            cellToToggleFlag.appendChild(flagEl)
-            cellToToggleFlag.setAttribute('FLAG', '1')
-            flagsPlaced++
-            undetectedMines--
-        } else if (cellToToggleFlag.hasAttribute('FLAG')) {
-            cellToToggleFlag.removeAttribute('FLAG')
-            const flagToRemoveEl = document.querySelector(('[flag-index="' + cellToToggleFlag.getAttribute('data-index') + '"]'))
-            flagToRemoveEl.remove()
-            flagsPlaced--
-            undetectedMines++
+
+    console.log('NEW CLICK ----------------------------------------')
+    
+    const itemClicked = evt.target
+    // console.log(itemClicked)
+
+    const itemClickedIdx = itemClicked.getAttribute('data-index')
+    // console.log(itemClickedIdx)
+
+    const itemFlagIdx = itemClicked.getAttribute('flag-index')
+    // console.log(itemFlagIdx)
+
+    // console.log(itemClicked.hasAttribute('flag-index'))
+    
+    function toggleFlag(itemClicked, itemClickedIdx, itemFlagIdx, minesArr, flagsArr) {
+
+        function checkIfFlagPresent(itemClicked, itemClickedIdx, itemFlagIdx) {
+            // console.log(`check if flag present fired`)
+            // console.log(itemClicked.hasAttribute('flag'))
+            if (itemClicked.hasAttribute('flag') === true) {
+                removeFlag(itemClicked, itemClickedIdx, itemFlagIdx)
+            } else {
+                addFlag(itemClicked)
+            }
         }
-        console.log(`flagsPlaced = ${flagsPlaced}`)
-        console.log(`undetected mines = ${undetectedMines}`)
-        // console.log(cellToToggleFlag)
-        checkWinner()
+
+        function addFlag(itemClicked) {
+            // console.log(`add flag fired`)
+            const flagEl = createFlag()
+            itemClicked.setAttribute('FLAG', '1')
+            flagEl.setAttribute('FLAG', '1')
+            flagEl.setAttribute('flag-index', itemClickedIdx)
+            itemClicked.appendChild(flagEl)
+            flagsArr.push(Number(itemClickedIdx))
+            flagsPlaced++            
+        }
+
+        function removeFlag(itemClicked, itemClickedIdx, itemFlagIdx) {
+            if (itemClicked.hasAttribute('flag') && itemClicked.hasAttribute('data-index')) {
+                // console.log(`a fired`)
+                flagToRemoveEl = document.querySelector('[flag-index="' + itemClickedIdx + '"]')
+                // console.log(`flag to remove EL = ${flagToRemoveEl}`)
+                flagToRemoveEl.remove()
+                const cellFlagToRemove = document.querySelector('[data-index="' + itemClickedIdx + '"]')
+                cellFlagToRemove.removeAttribute('flag')
+                // adjustFlagsArr(flagToRemoveEl.getAttribute('[flag-index="' + itemClickedIdx + '"]'))
+            } else if (itemClicked.hasAttribute('flag') && itemClicked.hasAttribute('flag-index')) {
+                // console.log(`b fired`)
+                flagToRemoveEl = document.querySelector('[flag-index="' + itemFlagIdx + '"]')
+                // console.log(`flag to remove EL = ${flagToRemoveEl}`)
+                flagToRemoveEl.remove()
+                itemClicked.removeAttribute('flag')
+                const cellFlagToRemove = document.querySelector('[data-index="' + itemFlagIdx + '"]')
+                cellFlagToRemove.removeAttribute('flag')
+                // adjustFlagsArr(flagToRemoveEl.getAttribute('[data-index="' + itemFlagIdx + '"]'))
+            } else {}
+            adjustFlagsArr(itemClicked)
+            flagsPlaced--
+
+        }
+
+        function adjustFlagsArr(itemToRemove) {
+            // console.log(itemToRemove)
+            if (itemToRemove.hasAttribute('flag-index')) {
+                const idxToRemove = itemToRemove.getAttribute('flag-index')
+                removeFlagFromArr(idxToRemove)
+            } else if (itemToRemove.hasAttribute('data-index')) {
+                const idxToRemove = itemToRemove.getAttribute('data-index')
+                removeFlagFromArr(idxToRemove)
+            } else {}
+            
+            function removeFlagFromArr(idxToRemove) {
+                idxToRemove = Number(idxToRemove)
+                const locationToRemove = flagsArr.indexOf(idxToRemove)
+                if (locationToRemove > -1) {
+                    flagsArr.splice(locationToRemove, 1)
+                }
+            }
+        }
+
+        function calculateUndetectedMines(minesArr, flagsArr) {
+            console.log(`mines arr is: ${minesArr}`)
+            console.log(`flags arr is : ${flagsArr}`)
+            for (let i=0; i<flagsArr.length; i++) {
+                console.log(flagsArr[i])
+                const idxToCheck = minesArr.indexOf(flagsArr[i])
+                console.log(idxToCheck)
+                if (idxToCheck === -1) {
+                    //do nothing
+                } else if (idxToCheck > -1) {
+                    undetectedMines--
+                }
+            }
+            console.log(`undetected mines are: ${undetectedMines}`)
+        }
+
+        checkIfFlagPresent(itemClicked, itemClickedIdx, itemFlagIdx)
+        calculateUndetectedMines(minesArr, flagsArr)
     }
 
     function checkWinner() {
@@ -453,15 +550,22 @@ function handleRightClick(evt) {
     }
 
     function celebrateWinner() {
-
     }
+    
 
-    toggleFlag()
+    toggleFlag(itemClicked, itemClickedIdx, itemFlagIdx, minesArr, flagsArr)
 }
 
 
 function sortArr(a,b) {
     return a-b
+}
+
+function createFlag() {
+    const flagEl = document.createElement('img')
+    flagEl.src = assets.flag
+    flagEl.style.height = '3.5vmin'
+    return flagEl
 }
 
 function removeEvtListeners() {

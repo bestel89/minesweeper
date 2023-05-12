@@ -90,3 +90,8 @@ checkWinner():
 - click PLAY GAME / RESTART button
 - DELEGATED - CLICK - SQUARES
 - DELEGATED - RIGHT CLICK - SQUARES
+
+
+## CREDITS
+
+<a href="https://www.flaticon.com/free-icons/timer" title="timer icons">Timer icons created by Freepik - Flaticon</a>
