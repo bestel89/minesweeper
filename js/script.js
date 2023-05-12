@@ -302,6 +302,8 @@ function handleLeftClick(evt) {
             tickEl.style.height = '3.5vmin'
             if (cellToPlaceMine.hasAttribute('flag')) {
                 cellToPlaceMine.appendChild(tickEl)
+                const flagToRemove = document.querySelector(('[flag-index="' + arr[i] + '"]'))
+                flagToRemove.remove()
             } else {
                 cellToPlaceMine.appendChild(mineEl)
             }
