@@ -1,4 +1,4 @@
-//! CONSTANTS
+//! GLOBAL CONSTANTS
 const level = {
     'easy': {cellWidth: 8, cellHeight: 10, boardWidth: 48, boardHeight: 60, mineNum: 10, difficulty:'easy'},
     'medium': {cellWidth: 14, cellHeight: 18, boardWidth: 56, boardHeight: 70, mineNum: 40, difficulty:'medium'},
@@ -31,7 +31,7 @@ const numberColors = {
 
 const audioPlayer = new Audio();
 
-//! CACHED ELEMENTS
+//! GLOBAL CACHED ELEMENTS
 const grid = document.querySelector('.grid')
 
 //! GLOBAL VARIABLES
@@ -41,10 +41,13 @@ let flagsArr
 let flagsPlaced
 let flagsToPlace
 let detectedMines
-let timer
 let width
 let height
 let cellCount
+let totalSeconds
+let totalMinutes
+
+//? INIT FUNCTION BELOW ------------------------------------------------------ \\
 
 function init() {
 
@@ -60,7 +63,8 @@ function init() {
     flagsArr = []
     flagsPlaced = 0
     flagsToPlace = level[difficulty].mineNum - flagsPlaced
-    timer = 0
+    totalSeconds = 0
+    totalMinutes = 0
     undetectedMines = level[difficulty].mineNum - detectedMines
     
     //! INIT FUNCTIONS
@@ -68,14 +72,16 @@ function init() {
         difficulty = localStorage.getItem("difficulty");
     }
     
+    //FUNCTION TO CREATE THE HEADER USING JS
     function createHeader() {
-        // console.log(`create header has run`)
         const headerEl = document.getElementById('headerEl')
 
+        //MINESWEEPER TITLE
         const pageTitleEl = document.createElement('h1')
         pageTitleEl.innerText = 'minesweeper'
         headerEl.appendChild(pageTitleEl)
 
+        //FLAG COUNTER
         const flagCounterEl = document.createElement('div')
         flagCounterEl.setAttribute('id', 'flagDiv')
         headerEl.appendChild(flagCounterEl)
@@ -86,6 +92,7 @@ function init() {
         flagCounterNum.setAttribute('id', 'flagCounterNum')
         flagCounterEl.appendChild(flagCounterNum)
         
+        //TIMER ELEMENTS
         const timerDivEl = document.createElement('div')
         timerDivEl.setAttribute('id', 'timerDiv')
         headerEl.appendChild(timerDivEl)
@@ -93,11 +100,34 @@ function init() {
         timerImgEl.setAttribute('src', 'assets/stopwatch.png')
         timerImgEl.style.height = '3.5vmin'
         timerDivEl.appendChild(timerImgEl)
-        const timerCounterNum = document.createElement('h3')
-        timerCounterNum.setAttribute('id', 'timerCounterNum')
-        timerCounterNum.innerText = '0'
-        timerDivEl.appendChild(timerCounterNum)
+        const minutesEl = document.createElement('h3')
+        const semiColonEl = document.createElement('h3')
+        const secondsEl = document.createElement('h3')
+        minutesEl.setAttribute('id', 'minutes')
+        semiColonEl.setAttribute('id', 'semiColon')
+        secondsEl.setAttribute('id', 'seconds')
+        timerDivEl.appendChild(minutesEl)
+        timerDivEl.appendChild(semiColonEl)
+        timerDivEl.appendChild(secondsEl)
 
+        // TIMER FUNCTIONALITY
+        setInterval(setTime, 1000)
+        function setTime() {
+            totalSeconds++
+            secondsEl.innerHTML = totalSeconds
+            if (totalSeconds%60 === 0){
+                totalMinutes++
+                minutesEl.innerText = totalMinutes
+                semiColonEl.innerText = ':'
+                secondsEl.innerText = '00'
+            } else if (totalSeconds%60 < 10) {
+                secondsEl.innerText = `0${totalSeconds%60}`
+            } else if (totalSeconds%60 > 9) {
+                secondsEl.innerText = totalSeconds%60
+            }
+        }
+
+        //LEVEL BUTTON ELEMENTS
         const buttonsDiv = document.createElement('div')
         buttonsDiv.setAttribute('id', 'buttonsDiv')
         headerEl.appendChild(buttonsDiv)
@@ -114,25 +144,26 @@ function init() {
         hardBtnEl.innerText = 'Hard'
         buttonsDiv.appendChild(hardBtnEl)
 
+        //FUNCTION TO HIGHLIGHT CORRECT BUTTON
         function highlightBtn(){
             const btnToHighlight = document.getElementById(`${difficulty}Btn`)
             btnToHighlight.classList.add('selected')
         }
 
-        //add button event listeners
+        // BUTTON EVENT LISTENERS
         easyBtnEl.addEventListener('click', startEasyGame)
         mediumBtnEl.addEventListener('click', startMediumGame)
         hardBtnEl.addEventListener('click', startHardGame)
 
-        //run highlight button
+        //RUN HIGHLIGHT BUTTON UPON PAGE LOAD, AFTER GOT DIFFICULTY FROM LOCAL STORAGE
         highlightBtn()
     }
     
+    //FUNCTION TO CREATE THE CELL HEIGHT AND WIDTH(DIFF FOR DIFFERENT DIFFICULTIES) AND CREATE THE CHECKERBOARD GRID
     function createGrid() {
 
-        // console.log(`create grid has run`)
-
         let rowCounter = 0
+
         for (let i=0; i<cellCount; i++) {
             const cell = document.createElement('div')
             cell.setAttribute('data-index', i)
@@ -152,10 +183,10 @@ function init() {
         }
     }
 
+    //FUNCTION TO LAY THE NUMBERS AND MINES ON EACH CELL USING AN ATTRIBUTE: MSGRID
     function createNumbers() {
-
-        // console.log(`create numbers has run`)
     
+        //FUNCTION THAT GENERATES THE MINE LOCATIONS FIRST, BY PLACING AN MSGRID VALUE OF -1
         function placeMines() {
             let minesPlaced = 0;
             while (minesPlaced < level[difficulty].mineNum) {
@@ -171,15 +202,14 @@ function init() {
             }
         }
 
+        //FUNCTION THAT TAKES EACH CELL IN THE GRID, CALCULATES ADJ MINES AND SETS THE MSGRID NUMBER TO BE THE NUMBER OF ADJACENT MINES
         function placeNumbers(){
             //get each cell in the grid, one by one
             for(let i = 0; i<cellCount; i++) {
-
+                
                 let adjMineCount = 0;
-
                 let adjCellArr = [];
 
-                //get each adjacent cell and put it in an array
                 function getHoriz() {
                     // horiz left
                     if (i % width !== 0 ) {
@@ -254,17 +284,26 @@ function init() {
         placeNumbers()
     }
     //! PAGE LOAD
-    playSound('welcome')
+    // playSound('welcome')
     createHeader()
     createGrid()
     createNumbers()
 }
 
+//? INIT FUNCTION ABOVE ------------------------------------------------------ \\
+
+//? HANDLE LEFT CLICK BELOW ------------------------------------------------------ \\
+
+//MAIN EVENT HANDLER FUNCTIOM THAT IS PASSED INTO THE EVENT LISTENER
 function handleLeftClick(evt) {
+
+    // SHORTCUT TO THE EVENT TARGET(THE CELL CLICKED)
     const cellClicked = evt.target
-    //get the MS GRID value of the cell
+    
+    //get the MS GRID value of the cell (NUMBER OF ADJ MINES), CONVERT TO NUMBER
     const cellClickedValue = Number(cellClicked.getAttribute('MSGRID'))
     
+    //DECIDE THE RIGHT COURSE OF ACTION WHEN A LEFT CLICK TAKES PLACE
     function checkLeftClickAction(cellClicked, cellClickedValue) {
         if (cellClickedValue === -1) {
             gameOver(minesArr)
@@ -279,6 +318,7 @@ function handleLeftClick(evt) {
         } else {console.log('invalid2')}
     }
 
+    //OPENS AND DISPLAYS MSGRID FOR SINGLE CELL IF MSGRID > 0
     function openSingleCell(cellClicked, cellClickedValue) {
         cellClicked.innerText = `${cellClickedValue}`
         cellClicked.style.backgroundColor = 'var(--dirt-bg)'
@@ -288,6 +328,7 @@ function handleLeftClick(evt) {
         playSound('singleCell')
     }
 
+    //GAMEOVER FUNCTION - DISPLAYS MINES, SHOWS WHICH MINES WERE TAGGED CORRECTLY
     function gameOver(arr) {
         grid.style.cursor = 'auto'
         for (let i=0; i<arr.length; i++) {
@@ -311,13 +352,19 @@ function handleLeftClick(evt) {
         playSound('err')
     }
 
+    //OPEN UP FUNCTION - CALCULATES CORRECT PORTION OF THE BOARD TO OPEN UP IN RESPONSE TO CLICKING A CELL WITH MSGRID = 0
     function openUp(cellClicked, cellClickedValue) {
+        
+        //GET DATA INDEX VALUE OF THE CELL THAT WAS CLICKED
         cellClickedIdx = cellClicked.getAttribute('data-index')
-        //convert from string to number
+        //CONVERT TO NUMBER
         cellClickedIdx = Number(cellClickedIdx)
 
+        //REQUIRED FOR RECURSION
         let nextCellToCheck = cellClicked
-        
+
+        //! CANDIDATE FOR REFACTORING - IDEALLY THIS WOULD BE REFACTORED AND USED HERE, BUT ALSO FOR THE INIT FUNCTION
+        //CREATES AN ARRAY OF THE ADJACENT CELLS FOR USE LATER
         function makeArrCellsAdj(cell) {
             adjCellArr = [];
 
@@ -372,32 +419,43 @@ function handleLeftClick(evt) {
             return adjCellArr
         }
 
+        //OPENS UP THE CELLS BY SETTING CELLS THAT ARE ADJACENT TO A ZERO WITH AN ATTRIBUTE OF 'ZERO ADJ'
         function openCells(cell, arr) {
+
+            //SETS CELL CLICKED AS 'OPEN'
             cell.setAttribute('OPEN', 1)
             cell.style.backgroundColor = 'var(--dirt-bg)'
+
+            //LOOPS THROUGH THE ARRAY OF ADJACENT CELLS TO THE CELL THAT WAS CLICKED
             for (let i = 0; i<arr.length; i++) {
                 const adjCellFromArr = document.querySelector(('[data-index="' + arr[i] + '"]'))
                 if (cell.getAttribute('MSGRID') === '0') {
                     cell.innerText = ''
                     adjCellFromArr.setAttribute('ZEROADJ', 1)
                 } else {}
-                if (cell.getAttribute('MSGRID') === '1') {
-                    cell.innerText = ''
-                    adjCellFromArr.setAttribute('ZEROADJ', 1)
-                } else {}
 
+                //! CANDIDATE TO REMOVE AFTER FURTHER TESTING
+                // if (cell.getAttribute('MSGRID') === '1') {
+                //     cell.innerText = ''
+                //     adjCellFromArr.setAttribute('ZEROADJ', 1)
+                // } else {}
+
+                //GET CELLS INDEX AND ITS MSGRID VALUE
                 let adjCellFromArrIdx = adjCellFromArr.getAttribute('data-index')
                 adjCellFromArrIdx = Number(adjCellFromArrIdx)
                 let adjCellFromArrValue = adjCellFromArr.getAttribute('MSGRID')
                 adjCellFromArrValue = Number(adjCellFromArrValue)
                 
+                //CHECK IF THE ADJ CELL IS ALREADY 'OPEN
                 function checkIfOpen(cell) {
                     if (cell.hasAttribute('OPEN')) {
                         return true
                     } else {return false}
                 }
                 checkIfOpen(adjCellFromArr)
-                
+
+                //IF IT MEETS CONDITIONS, OPEN THE CELL UP
+                // CHANGE THE 'NEXT CELL TO CHECK' VARIABLE TO DO THE SAME FUNCTION WITH ALL ADJACENT CELLS IN ARRAY
                 if (checkIfOpen(adjCellFromArr) === false &&
                     adjCellFromArrValue === 0 
                      ) {
@@ -423,14 +481,21 @@ function handleLeftClick(evt) {
     checkLeftClickAction(cellClicked, cellClickedValue)
 }
 
+//? HANDLE LEFT CLICK ABOVE ------------------------------------------------------ \\
+
+//? HANDLE RIGHT CLICK BELOW ------------------------------------------------------ \\
+
+//RIGHT CLICK EVENTS ARE MAINLY FOR TOGGLING FLAGS, BUT CAN TRIGGER WINS
 function handleRightClick(evt) {
     
+    //ITEM CLICKED RATHER THAN CELL CLICKED BECAUSE IT COULD BE A FLAG
     const itemClicked = evt.target
     const itemClickedIdx = itemClicked.getAttribute('data-index')
     const itemFlagIdx = itemClicked.getAttribute('flag-index')
     
     function toggleFlag(itemClicked, itemClickedIdx, itemFlagIdx, minesArr, flagsArr) {
 
+        //CHECKS IF A FLAG IS ALREADY PRESENT AT A CELL OR NOT AND DECIDES NEXT ACTION
         function checkIfFlagPresent(itemClicked, itemClickedIdx, itemFlagIdx) {
             if (itemClicked.hasAttribute('flag') === true) {
                 removeFlag(itemClicked, itemClickedIdx, itemFlagIdx)
@@ -441,21 +506,27 @@ function handleRightClick(evt) {
             }
         }
 
+        //ADDS A FLAG IF CELL WAS EMPTY, UPDATES FLAG COUNTER, ADDS TO FLAG ARRAY
         function addFlag(itemClicked) {
-            const flagEl = createFlag()
-            itemClicked.setAttribute('FLAG', '1')
-            flagEl.setAttribute('FLAG', '1')
-            flagEl.setAttribute('flag-index', itemClickedIdx)
-            itemClicked.appendChild(flagEl)
-            flagsArr.push(Number(itemClickedIdx))
-            flagsPlaced++ 
-            console.log(`flags placed: ${flagsPlaced}`)
-            console.log(`flags to place: ${flagsToPlace}`)
-            console.log(flagCounterNum)
-            flagCounterNum.innerText = flagsToPlace - flagsPlaced
-            playSound('flagsound')
+            if (flagsToPlace > 0) {
+                const flagEl = createFlag()
+                itemClicked.setAttribute('FLAG', '1')
+                flagEl.setAttribute('FLAG', '1')
+                flagEl.setAttribute('flag-index', itemClickedIdx)
+                itemClicked.appendChild(flagEl)
+                flagsArr.push(Number(itemClickedIdx))
+                flagsPlaced++ 
+                flagCounterNum.innerText = flagsToPlace - flagsPlaced
+                flagsToPlace--
+                playSound('flagsound')
+            } else {
+                playSound('err')
+                flagCounterNum.innerText = '0'
+            }
         }
 
+        //REMOVES A FLAG IF ONE WAS ALREADY THERE, UPDATES FLAG COUNTER
+        //! OPPORTUNITY TO DO SOME REFACTORING ON THIS
         function removeFlag(itemClicked, itemClickedIdx, itemFlagIdx) {
             if (itemClicked.hasAttribute('flag') && itemClicked.hasAttribute('data-index')) {
                 flagToRemoveEl = document.querySelector('[flag-index="' + itemClickedIdx + '"]')
@@ -475,6 +546,7 @@ function handleRightClick(evt) {
             playSound('flagsound')
         }
 
+        //UPDATES FLAG ARRAY AFTER REMOVED A FLAG
         function adjustFlagsArr(itemToRemove) {
             if (itemToRemove.hasAttribute('flag-index')) {
                 const idxToRemove = itemToRemove.getAttribute('flag-index')
@@ -493,6 +565,7 @@ function handleRightClick(evt) {
             }
         }
 
+        //CHECKS FLAGS ARR AGAINST MINES ARR, IF ALL FLAGS ARE ON MINES THEN CHECK WINNER
         function calculateUndetectedMines(minesArr, flagsArr) {
             detectedMines = 0
             for (let i=0; i<minesArr.length; i++) {
@@ -510,6 +583,7 @@ function handleRightClick(evt) {
         calculateUndetectedMines(minesArr, flagsArr)
     }
 
+    //CHECKS IF THE NUMBER OF DETECTED MINES IS EQUAL TO THE STARTING MINE NUMBER, AND CELEBRATES IF WINNER
     function checkWinner() {
         if (detectedMines === level[difficulty].mineNum) {
             winner = true
@@ -523,15 +597,21 @@ function handleRightClick(evt) {
     toggleFlag(itemClicked, itemClickedIdx, itemFlagIdx, minesArr, flagsArr)
 }
 
+//? HANDLE RIGHT CLICK ABOVE ------------------------------------------------------ \\
 
+//? SUPPORTING FUNCTIONS BELOW ------------------------------------------------------ \\
+
+// SUPPORTS SORTING OF ARRAYS
 function sortArr(a,b) {
     return a-b
 }
 
+//PROVIDES RANDOM NUMBER USING CELL COUNT - HELPS PLACE MINES
 function randNum() {
     return Math.floor(Math.random() * cellCount);
 }
 
+//SHORTCUT TO CREATE FLAG IMG ELEMENT
 function createFlag() {
     const flagEl = document.createElement('img')
     flagEl.src = assets.flag
@@ -539,26 +619,27 @@ function createFlag() {
     return flagEl
 }
 
+//SHORTCUT TO REMOVE MAIN EVENT LISTENERS
 function removeEvtListeners() {
     grid.removeEventListener('click', handleLeftClick)
     grid.removeEventListener('contextmenu', handleRightClick)
 }
 
+//START NEW GAME - FORCES PAGE RELOAD AND SAVES DATA TO LOCAL STORAGE
 function startEasyGame() {
     localStorage.setItem("difficulty", "easy");
     location.reload()
 }
-
 function startMediumGame() {
     localStorage.setItem("difficulty", "medium");
     location.reload()
 }
-
 function startHardGame() {
     localStorage.setItem("difficulty", "hard");
     location.reload()
 }
 
+//PLAYS ANY SOUND YOU PASS TO THE PLAYER
 function playSound(name) {
     audioPlayer.src = assets[name];
     audioPlayer.play();
@@ -580,5 +661,5 @@ grid.addEventListener("contextmenu", e => e.preventDefault());
 grid.addEventListener('contextmenu', handleRightClick)
 
 
-
-
+//? BUGS TO FIX
+//1 - LEFT CLICK OF A FLAG - SHOULD DO NOTHING
