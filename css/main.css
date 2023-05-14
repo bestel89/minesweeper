@@ -29,33 +29,27 @@
     align-items: center;
   }
 
-  header {
-
-  }
-
   #headerEl {
-    
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-left: 2vmin;
     margin-right: 2vmin;
-    /* background-color: var(---num); */
-    /* border-bottom: thick solid var(--dirt-bg); */
+    background-color: var(---num);
+    border-bottom: thick solid var(--dirt-bg);
   }
 
   h1 {
     color: var(--white-txt);
     font-family: 'Roboto Mono', monospace;
     font-size: 4vmin;
-
+    margin-right: 5vmin;
   }
 
   h3 {
     font-size: 3.5vmin;
   }
-  
-  
+
   .grid-wrapper {
     height: 80vh;
     display: flex;
@@ -68,7 +62,6 @@
     align-items: center;
     justify-content: flex;
     border: thick solid var(--border);
-    box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2);
     flex-wrap: wrap;
     height: 80vmin;
     width: 80vmin;
@@ -78,14 +71,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    /* border: 1px solid var(--border); */
     flex-grow: 1;
-    height: 10%;
-    width: 10%;
   }
 
   .grid div:hover {
-    background-color: var(--grass-hover);
+    background-color: pink;
   }
 
   #flagDiv {
@@ -93,6 +83,7 @@
     justify-content: space-evenly;
     align-items: center;    
     width: 10vmin;
+    margin-right: 3vmin;
   }
 
   #timerDiv {
@@ -100,6 +91,7 @@
     justify-content: space-evenly;
     align-items: center;
     width: 10vmin;
+    margin-right: 3vmin;
   }
 
   #buttonsDiv {
@@ -113,8 +105,8 @@
     height: 4vmin;
     width: 10vmin;
     font-size: 2vmin;
-    margin-left: 1vmin;
-    margin-right: 1vmin;
+    margin-left: 0.5vmin;
+    margin-right: 0.5vmin;
     background-color: var(--main-bg);
     border: 1px solid white;
   }

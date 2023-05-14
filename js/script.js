@@ -10,7 +10,6 @@ const assets = {
     'flag': 'assets/flag.png',
     'stopwatch': 'assets/stopwatch.png',
     'tick': 'assets/check.png',
-    'welcome': 'assets/welcome.mp3',
     'win': 'assets/win.mp3',
     'openUp': 'assets/openUp.mp3',
     'singleCell': 'assets/singleCell.mp3',
@@ -278,13 +277,13 @@ function init() {
                 minesArr.sort(sortArr)
                 checkMineAdj()
                 updateMSGRID()
+                
             }
         }
         placeMines()
         placeNumbers()
     }
     //! PAGE LOAD
-    // playSound('welcome')
     createHeader()
     createGrid()
     createNumbers()
@@ -308,7 +307,8 @@ function handleLeftClick(evt) {
         if (cellClickedValue === -1) {
             gameOver(minesArr)
             removeEvtListeners()
-            console.log('game over')
+        } else if (cellClicked.hasAttribute('flag')) {
+            //do nothing
         } else if (cellClickedValue > 0) {
             openSingleCell(cellClicked, cellClickedValue)
         } else if (cellClickedValue > 8) {
@@ -332,9 +332,7 @@ function handleLeftClick(evt) {
     function gameOver(arr) {
         grid.style.cursor = 'auto'
         for (let i=0; i<arr.length; i++) {
-            console.log(arr[i])
             const cellToPlaceMine = document.querySelector(('[data-index="' + arr[i] + '"]'))
-            console.log(cellToPlaceMine)
             const mineEl = document.createElement('img')
             const tickEl = document.createElement('img')
             mineEl.src = assets.mine
@@ -447,16 +445,16 @@ function handleLeftClick(evt) {
                 adjCellFromArrValue = Number(adjCellFromArrValue)
                 
                 //CHECK IF THE ADJ CELL IS ALREADY 'OPEN
-                function checkIfOpen(cell) {
-                    if (cell.hasAttribute('OPEN')) {
+                function checkIfOpenOrHasFlag(cell) {
+                    if (cell.hasAttribute('OPEN') || cell.hasAttribute('flag')) {
                         return true
                     } else {return false}
                 }
-                checkIfOpen(adjCellFromArr)
+                checkIfOpenOrHasFlag(adjCellFromArr)
 
                 //IF IT MEETS CONDITIONS, OPEN THE CELL UP
                 // CHANGE THE 'NEXT CELL TO CHECK' VARIABLE TO DO THE SAME FUNCTION WITH ALL ADJACENT CELLS IN ARRAY
-                if (checkIfOpen(adjCellFromArr) === false &&
+                if (checkIfOpenOrHasFlag(adjCellFromArr) === false &&
                     adjCellFromArrValue === 0 
                      ) {
                          adjCellFromArr.setAttribute('OPEN', 1)
@@ -516,7 +514,7 @@ function handleRightClick(evt) {
                 itemClicked.appendChild(flagEl)
                 flagsArr.push(Number(itemClickedIdx))
                 flagsPlaced++ 
-                flagCounterNum.innerText = flagsToPlace - flagsPlaced
+                flagCounterNum.innerText = flagsToPlace
                 flagsToPlace--
                 playSound('flagsound')
             } else {
@@ -528,6 +526,7 @@ function handleRightClick(evt) {
         //REMOVES A FLAG IF ONE WAS ALREADY THERE, UPDATES FLAG COUNTER
         //! OPPORTUNITY TO DO SOME REFACTORING ON THIS
         function removeFlag(itemClicked, itemClickedIdx, itemFlagIdx) {
+            console.log(`remove flag firing`)
             if (itemClicked.hasAttribute('flag') && itemClicked.hasAttribute('data-index')) {
                 flagToRemoveEl = document.querySelector('[flag-index="' + itemClickedIdx + '"]')
                 flagToRemoveEl.remove()
@@ -542,7 +541,8 @@ function handleRightClick(evt) {
             } else {}
             adjustFlagsArr(itemClicked)
             flagsPlaced--
-            flagCounterNum.innerText = flagsToPlace - flagsPlaced
+            flagsToPlace++
+            flagCounterNum.innerText = flagsToPlace
             playSound('flagsound')
         }
 
@@ -662,4 +662,11 @@ grid.addEventListener('contextmenu', handleRightClick)
 
 
 //? BUGS TO FIX
-//1 - LEFT CLICK OF A FLAG - SHOULD DO NOTHING
+//1 - LEFT CLICK OF A FLAG - SHOULD DO NOTHING   ------ DONE
+//2 - SOMETIMES A -1 INNERTEXT IS PRESENT IN CELL WITH INDEX 0
+
+
+//? ROADMAP FEATURES
+//1 - username entry
+//2 - leaderboard using username and time taken
+//3 - custom grid size
