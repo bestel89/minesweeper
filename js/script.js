@@ -452,12 +452,6 @@ function handleLeftClick(evt) {
                     adjCellFromArr.setAttribute('ZEROADJ', 1)
                 } else {}
 
-                //! CANDIDATE TO REMOVE AFTER FURTHER TESTING
-                // if (cell.getAttribute('MSGRID') === '1') {
-                //     cell.innerText = ''
-                //     adjCellFromArr.setAttribute('ZEROADJ', 1)
-                // } else {}
-
                 //GET CELLS INDEX AND ITS MSGRID VALUE
                 let adjCellFromArrIdx = adjCellFromArr.getAttribute('data-index')
                 adjCellFromArrIdx = Number(adjCellFromArrIdx)

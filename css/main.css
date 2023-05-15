@@ -119,37 +119,3 @@
     border: 1px solid grey;
     background-color: var(--grass1-bg);
   }
-  
-/* Extra small devices (phones, 600px and down) */
-/* @media only screen and (max-width: 600px) {
-  .grid-wrapper {
-    height: 95%;
-    width: 95%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .grid {
-    display: flex;
-    align-items: center;
-    justify-content: flex;
-    border: thick solid var(--border);
-    flex-wrap: wrap;
-    height: 95%;
-    width: 95%;
-  }
-
-} */
-
-/* Large devices (laptops/desktops, 992px and up) */
-/* @media only screen and (min-width: 992px) {
-  section > div {
-      height: 35vmin;
-      width: 35vmin;
-      border: 1px solid blue;
-    }
-
-    h1 {
-      margin-top: 0;
-    }
-} */
