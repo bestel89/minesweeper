@@ -45,6 +45,7 @@ let height
 let cellCount
 let totalSeconds
 let totalMinutes
+let screenwidth
 
 //? INIT FUNCTION BELOW ------------------------------------------------------ \\
 
@@ -55,9 +56,9 @@ function init() {
     width = level[difficulty].cellWidth
     height = level[difficulty].cellHeight
     cellCount = width * height
+    grid.style.cursor = 'pointer'
     grid.style.height = `${level[difficulty].boardHeight}vmin`
     grid.style.width = `${level[difficulty].boardWidth}vmin`
-    grid.style.cursor = 'pointer'
     minesArr = []
     flagsArr = []
     flagsPlaced = 0
@@ -66,7 +67,31 @@ function init() {
     totalMinutes = 0
     undetectedMines = level[difficulty].mineNum - detectedMines
     
+    screenwidth = window.matchMedia("(max-width: 800px)");
+    function screenTest(e) {
+        if (e.matches) {
+            console.log(`a firing`)
+            grid.style.height = `90vmin`
+            grid.style.width = `90vmin`
+        } else {
+            console.log(`b firing`)
+            grid.style.height = `${level[difficulty].boardHeight}vmin`
+            grid.style.width = `${level[difficulty].boardWidth}vmin`
+        }
+    }
+    screenwidth.addEventListener("change", screenTest);
+    
     //! INIT FUNCTIONS
+    // function adjustGridSizeForScreenSize(breakpoint) {
+    //     if (breakpoint.matches) { // If media query matches
+    //       grid.style.height = `95vmin`
+    //       grid.style.width = `95vmin`
+    //     } else {
+    //         grid.style.height = `${level[difficulty].boardHeight}vmin`
+    //         grid.style.width = `${level[difficulty].boardWidth}vmin`
+    //     }
+    // }
+
     function getDifficulty() {
         if (localStorage.getItem("difficulty")) {
             difficulty = localStorage.getItem('difficulty')
