@@ -71,8 +71,8 @@ function init() {
     function screenTest(e) {
         if (e.matches) {
             console.log(`a firing`)
-            grid.style.height = `90vmin`
-            grid.style.width = `90vmin`
+            grid.style.height = `80vmin`
+            grid.style.width = `80vmin`
         } else {
             console.log(`b firing`)
             grid.style.height = `${level[difficulty].boardHeight}vmin`
@@ -82,16 +82,6 @@ function init() {
     screenwidth.addEventListener("change", screenTest);
     
     //! INIT FUNCTIONS
-    // function adjustGridSizeForScreenSize(breakpoint) {
-    //     if (breakpoint.matches) { // If media query matches
-    //       grid.style.height = `95vmin`
-    //       grid.style.width = `95vmin`
-    //     } else {
-    //         grid.style.height = `${level[difficulty].boardHeight}vmin`
-    //         grid.style.width = `${level[difficulty].boardWidth}vmin`
-    //     }
-    // }
-
     function getDifficulty() {
         if (localStorage.getItem("difficulty")) {
             difficulty = localStorage.getItem('difficulty')
