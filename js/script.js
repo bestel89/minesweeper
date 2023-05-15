@@ -68,7 +68,12 @@ function init() {
     
     //! INIT FUNCTIONS
     function getDifficulty() {
-        difficulty = localStorage.getItem("difficulty");
+        if (localStorage.getItem("difficulty")) {
+            difficulty = localStorage.getItem('difficulty')
+        } else {
+            difficulty = 'easy'
+        }
+        return difficulty
     }
     
     //FUNCTION TO CREATE THE HEADER USING JS
